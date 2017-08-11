@@ -6,7 +6,6 @@
             foreach($args as $k => $v) {
                 echo "<p><b>".$k."</b> => ".$v."</p>";
             }
-            echo "<p><b>".'id'."</b> => ".Params::getParam('id')."</p>";
         ?>
     </div>
     <div style="clear: both;"></div>

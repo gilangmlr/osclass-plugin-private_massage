@@ -18,7 +18,7 @@ Plugin update URI: mailto:gilangmlr@gmail.com
     require_once(osc_plugins_path() . 'private_message/hide_contact.php');
   }
 
-  osc_add_route('private-message', 'private-message/([0-9]+)', 'private-message/{id}', osc_plugin_folder(__FILE__).'private_message.php'); 
+  osc_add_route('private-message', 'private-message/([0-9]+)/([0-9]+)', 'private-message/{user}/{item}', osc_plugin_folder(__FILE__).'private_message.php'); 
 
   osc_add_hook('footer', 'hide_contact');
   osc_register_plugin(osc_plugin_path(__FILE__), 'custom_function_call_after_install') ;

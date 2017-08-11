@@ -17,7 +17,7 @@
           '<strong><a href="<?php echo osc_register_account_url(); ?>"><?php _e('Register for a free account', 'bender'); ?></a></strong>' +
       '</p>';
   <?php } else { ?>
-    var redirectLocation = '<?php echo osc_route_url('private-message', array('id' => 'i' . osc_item_id() . 'u' .osc_logged_user_id())); ?>';
+    var redirectLocation = '<?php echo osc_route_url('private-message', array('user' => osc_logged_user_id(), 'item' => osc_item_id())); ?>';
     content += '<button id="chatWithSeller" onClick="window.location.href='+"'"+redirectLocation+"'"+'">Chat with seller</button>';
   <?php } ?>
   $('#contact').html(content);
