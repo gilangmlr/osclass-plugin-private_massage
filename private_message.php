@@ -15,13 +15,26 @@
 ?>
 
 <div style="padding: 20px;">
-  <div style="padding: 8px; float: left; width: 56%; border: 1px solid rgb(234, 234, 234);">
-    Type message here...
+  <div style="margin: 8px; float: left; width: 56%; border: 1px solid rgb(234, 234, 234);">
+    <div style="overflow: auto; margin: 4px; height: 512px; border: 1px solid rgb(234, 234, 234);">
+    </div>
+    <div style="margin: 4px">
+      <script src="https://rawgit.com/jackmoore/autosize/master/dist/autosize.min.js"></script>
+      <textarea id="message-box" style="width: 80%; resize: none"></textarea>
+      <script>autosize($('#message-box'))</script>
+      <button>Send</button>
+    </div>
+    <div style="margin: 4px">
+      <input type="file" name="pic" accept="image/*">
+    </div>
   </div>
-  <div style="padding: 8px; float: left; width: 36%; border: 1px solid rgb(234, 234, 234);">
+  <div style="margin: 8px; padding: 8px; float: left; width: 36%; border: 1px solid rgb(234, 234, 234);">
     Buyer id: <?php echo Params::getParam('buyer') ?> <br />
     Seller id: <?php echo Params::getParam('seller') ?> <br />
-    Item id: <?php echo Params::getParam('item') ?>
+    Item id: <?php echo Params::getParam('item') ?> <br />
+  </div>
+  <div style="margin: 8px; padding: 8px; float: left; width: 36%; border: 1px solid rgb(234, 234, 234);">
+    <input type="number" value="500000"> <button>Make offer</button>
   </div>
   <div style="clear: both;"></div>
 </div>
