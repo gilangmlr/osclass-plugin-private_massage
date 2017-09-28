@@ -11,7 +11,32 @@ Plugin update URI: mailto:gilangmlr@gmail.com
 */
 
   function custom_function_call_after_install() {
+    $conn = getConnection() ;
+    $conn->autocommit(false);
+    try {
+      $path = osc_plugin_resource('private_message/struct.sql');
+      $sql = file_get_contents($path);
+      $conn->osc_dbImportSQL($sql);
+      $conn->commit();
+    } catch (Exception $e) {
+      $conn->rollback();
+      echo $e->getMessage();
+    }
+    $conn->autocommit(true);
+  }
 
+  function custom_function_call_after_uninstall() {
+    $conn = getConnection() ;
+    $conn->autocommit(false);
+    try {
+      $conn->osc_dbExec('DROP TABLE %st_message_room', DB_TABLE_PREFIX);
+      $conn->osc_dbExec('DROP TABLE %st_message', DB_TABLE_PREFIX);
+      $conn->commit();
+    } catch (Exception $e) {
+      $conn->rollback();
+      echo $e->getMessage();
+    }
+    $conn->autocommit(true);
   }
 
   function hide_contact() {
@@ -22,4 +47,5 @@ Plugin update URI: mailto:gilangmlr@gmail.com
 
   osc_add_hook('footer', 'hide_contact');
   osc_register_plugin(osc_plugin_path(__FILE__), 'custom_function_call_after_install') ;
+  osc_add_hook(osc_plugin_path(__FILE__)."_uninstall", 'custom_function_call_after_uninstall');
 ?>
