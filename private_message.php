@@ -15,6 +15,8 @@
     _e("This is not your private message!");
     return;
   }
+  $item = Item::newInstance()->findByPrimaryKey(intval($message_room['fk_i_item_id']));
+  View::newInstance()->_exportVariableToView('item', $item);
 ?>
 
 <div style="padding: 20px;">
@@ -32,12 +34,17 @@
     </div>
   </div>
   <div style="margin: 8px; padding: 8px; float: left; width: 36%; border: 1px solid rgb(234, 234, 234);">
-    Buyer id: <?php echo Params::getParam('buyer') ?> <br />
-    Seller id: <?php echo Params::getParam('seller') ?> <br />
-    Item id: <?php echo Params::getParam('item') ?> <br />
+    <b>Title:</b> <br />
+    <?php echo osc_item_title() ?> <br />
+    <br />
+    <b>Description:</b> <br />
+    <?php echo osc_item_description() ?> <br />
+    <br />
+    <b>Price:</b> <br />
+    <?php echo osc_item_formated_price(); ?> <br />
   </div>
   <div style="margin: 8px; padding: 8px; float: left; width: 36%; border: 1px solid rgb(234, 234, 234);">
-    <input type="number" value="500000"> <button>Make offer</button>
+    <input type="number" value="<?php echo (osc_item_price()/1000000) ?>"> <button>Make offer</button>
   </div>
   <div style="clear: both;"></div>
 </div>
