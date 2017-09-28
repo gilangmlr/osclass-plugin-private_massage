@@ -8,7 +8,10 @@
 <?php
     return;
   }
-  if (Params::getParam('buyer') != osc_logged_user_id()) {
+
+  $conn = getConnection() ;
+  $message_room = $conn->osc_dbFetchResult("SELECT * FROM %st_message_room WHERE pk_i_message_room_id = %d AND fk_i_buyer_id = %d", DB_TABLE_PREFIX, intval(Params::getParam('message_room_id')), osc_logged_user_id());
+  if(!isset($message_room['pk_i_message_room_id'])) {
     _e("This is not your private message!");
     return;
   }

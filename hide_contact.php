@@ -18,7 +18,6 @@
       '</p>';
   <?php } else { 
     $conn = getConnection() ;
-    // Gather the information related to the ad we're editing
     $message_room = $conn->osc_dbFetchResult("SELECT * FROM %st_message_room WHERE fk_i_item_id = %d AND fk_i_buyer_id = %d", DB_TABLE_PREFIX, osc_item_id(), osc_logged_user_id());
     if(!isset($message_room['pk_i_message_room_id'])) {
       $conn->osc_dbExec("INSERT INTO %st_message_room (fk_i_item_id, fk_i_buyer_id) VALUES (%d, %d)", DB_TABLE_PREFIX,  osc_item_id(), osc_logged_user_id());
