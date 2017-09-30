@@ -25,9 +25,9 @@
     </div>
     <div style="margin: 4px">
       <script src="https://rawgit.com/jackmoore/autosize/master/dist/autosize.min.js"></script>
-      <textarea id="message-box" style="width: 80%; resize: none"></textarea>
-      <script>autosize($('#message-box'))</script>
-      <button>Send</button>
+      <textarea id="messageBox" style="width: 80%; resize: none"></textarea>
+      <script>autosize($('#messageBox'))</script>
+      <button id="sendMessageButton">Send</button>
     </div>
     <div style="margin: 4px">
       <input type="file" name="pic" accept="image/*">
@@ -49,62 +49,18 @@
   <div style="clear: both;"></div>
 </div>
 
-<?php
-  $user_id = Params::getParam('buyer');
-  $conn = getConnection();
-  $user = $conn->osc_dbFetchResult("SELECT * FROM %st_user WHERE pk_i_id = %d", DB_TABLE_PREFIX, $user_id);
-?>
-
-<script src="<?php echo osc_plugin_url('private_message/js/firebase.js') . 'firebase.js' ?>"></script>
 <script>
-  // Initialize Firebase
-  var config = {
-    apiKey: "AIzaSyCDxUzO8HNZ0dJtxSFFow6lkRMyWKWzrWE",
-    authDomain: "osclass-private-message-766aa.firebaseapp.com",
-    databaseURL: "https://osclass-private-message-766aa.firebaseio.com",
-    projectId: "osclass-private-message-766aa",
-    storageBucket: "osclass-private-message-766aa.appspot.com",
-    messagingSenderId: "506407180637"
-  };
-  firebase.initializeApp(config);
+  var ajax_url = "<?php echo osc_ajax_plugin_url('private_message/ajax_private_message.php') ?>";
+  $('#sendMessageButton').click(function() {
+      $.ajax({
+        type: "POST",
+        url: ajax_url,
+        data: {content: $('#messageBox').val()},
+        cache: false,
 
-  function signInOrCreate(email, password) {
-    firebase.auth().signInWithEmailAndPassword(email, password).catch(function(error) {
-      // Handle Errors here.
-      var errorCode = error.code;
-      if (errorCode === 'auth/user-not-found') {
-        firebase.auth().createUserWithEmailAndPassword(email, password).catch(function(error) {
-          // Handle Errors here.
-          var errorCode = error.code;
-          var errorMessage = error.message;
-          console.log('error create user');
-          console.log(error);
-        });
-      }
-
-      var errorMessage = error.message;
-      console.log('error sign in');
-      console.log(error);
-    });
-  }
-
-  firebase.auth().onAuthStateChanged(function(user) {
-    if (user) {
-      // User is signed in.
-      var displayName = user.displayName;
-      var email = user.email;
-      var emailVerified = user.emailVerified;
-      var photoURL = user.photoURL;
-      var isAnonymous = user.isAnonymous;
-      var uid = user.uid;
-      var providerData = user.providerData;
-      
-      console.log(user);
-    } else {
-      // User is signed out.
-      // ...
-    }
+        success: function(data) {
+          alert(data);
+        }
+      });
   });
-
-  signInOrCreate("<?= $user['s_email'] ?>", "<?= $user['s_secret'] ?>");
 </script>
