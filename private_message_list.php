@@ -35,11 +35,25 @@
   }
 </style>
 
+    <?php
+      if (intval(Params::getParam('item_id'))) {
+    ?>
+      <div style="margin: 2px; padding: 8px;">
+        <a href="<?php echo osc_route_url('private-message-list', array('item_id' => null)); ?>">All items</a>
+      </div>
+    <?php
+      }
+    ?>
+
 <?php
   foreach ($message_rooms as $key => $message_room) {
 ?>
   <div class="message-room">
-    <div><?php echo "Item ID: ".$message_room['fk_i_item_id'].", " ?>Message Room ID: <?php echo $message_room['pk_i_message_room_id'] ?>, Buyer ID: <?php echo $message_room['fk_i_buyer_id'] ?></div>
+    <div><?php
+      if (intval(Params::getParam('item_id')) <= 0) {
+        echo "Item ID: ".$message_room['fk_i_item_id'].", ";
+      }
+    ?>Message Room ID: <?php echo $message_room['pk_i_message_room_id'] ?>, Buyer ID: <?php echo $message_room['fk_i_buyer_id'] ?></div>
     <div><a href="<?php echo osc_route_url('private-message', array('message_room_id' => $message_room['pk_i_message_room_id'])); ?>">View Chat</a></div>
   </div>
 <?php
