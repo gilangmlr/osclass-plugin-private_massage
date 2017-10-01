@@ -1,4 +1,8 @@
 <?php
+    if (trim(Params::getParam('content')) === "" && Params::getParam('mode') !== "poll") {
+        echo json_encode(["error" => "Content cannot be empty."]);
+        exit();
+    }
     if (intval(Params::getParam('senderId')) !== osc_logged_user_id()) {
         echo json_encode(["error" => "You are not authorized to use this user."]);
         exit();

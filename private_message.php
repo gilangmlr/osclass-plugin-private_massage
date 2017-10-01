@@ -147,6 +147,9 @@
           },
           success: function (messages) {
             for (var key in messages) {
+              if (messages['error']) {
+                break;
+              }
               var message = messages[key];
               var className = 'yours';
               if (message["fk_i_sender_id"] === osc_logged_user_id) {
@@ -172,6 +175,10 @@
     }
   }
   $('#sendMessageButton').click(function() {
+    if ($('#messageBox').val().trim() === "") {
+      $('#messageBox').val('');
+      return;
+    }
     isActive = false;
     $.ajax({
       type: "POST",
