@@ -15,8 +15,7 @@
   $item = Item::newInstance()->findByPrimaryKey(intval($message_room['fk_i_item_id']));
   View::newInstance()->_exportVariableToView('item', $item);
 
-  if(!isset($message_room['pk_i_message_room_id']) && osc_item_user_id() !== osc_logged_user_id()) {
-    var_dump($message_room['fk_i_item_id']);
+  if(intval($message_room['fk_i_buyer_id']) !== osc_logged_user_id() && osc_item_user_id() !== osc_logged_user_id()) {
     _e("This is not your private message!");
     exit();
   }
@@ -89,7 +88,7 @@
     </div>
     <div style="margin: 4px">
       <script src="https://rawgit.com/jackmoore/autosize/master/dist/autosize.min.js"></script>
-      <textarea id="messageBox" style="width: 80%; resize: none"></textarea>
+      <textarea id="messageBox" rows="2" style="width: 80%; resize: none"></textarea>
       <script>autosize($('#messageBox'))</script>
       <button id="sendMessageButton">Send</button>
     </div>
@@ -169,7 +168,7 @@
           },
           error: function () {
           }});
-      }, 2500);
+      }, 5000);
     }
   }
   $('#sendMessageButton').click(function() {
