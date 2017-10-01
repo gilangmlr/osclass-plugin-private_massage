@@ -31,4 +31,8 @@
     <?php } ?>
   <?php } ?>
   $('#contact').html(content);
+
+  <?php if( osc_users_enabled() && osc_is_web_user_logged_in() ) { ?>
+    $('#header .nav li:nth-child(1)').before($('<li style="margin-right: 16px;"><a href="<?php echo osc_route_url('private-message-list', array('item_id' => null)); ?>">Private Message</a></li>'));
+  <?php } ?>
 </script>
