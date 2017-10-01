@@ -98,8 +98,15 @@
     </div>
   </div>
   <div style="margin: 8px; padding: 8px; float: left; width: 36%; border: 1px solid rgb(234, 234, 234);">
-    <b>Title:</b> <br />
-    <?php echo osc_item_title() ?> <br />
+    <a href="<?php echo osc_item_url(); ?>">
+      <?php echo osc_item_title() ?>
+    </a> <br />
+    <br />
+    <?php if (osc_count_item_resources()) { ?>
+      <a href="<?php echo osc_item_url(); ?>"><img src="<?php echo osc_resource_thumbnail_url(); ?>" width="75px" height="56px" title="" alt="" /></a>
+    <?php } else { ?>
+      <img src="<?php echo osc_current_web_theme_url('images/no_photo.gif'); ?>" title="" alt="" />
+    <?php } ?> <br />
     <br />
     <b>Description:</b> <br />
     <?php echo osc_item_description() ?> <br />
