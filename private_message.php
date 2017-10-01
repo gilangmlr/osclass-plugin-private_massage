@@ -135,10 +135,6 @@
     if (isActive)
     {
       window.setTimeout(function () {
-        if ($(".message-container:last-child").attr('id') === undefined) {
-          alert('undefined');
-          return;
-        }
         $.ajax({
           url: ajax_url,
           type: "POST",
