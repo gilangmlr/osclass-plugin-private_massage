@@ -6,7 +6,7 @@
     <strong><a href="<?php echo osc_user_login_url(); ?>"><?php _e('Login'); ?></a></strong> or <strong><a href="<?php echo osc_register_account_url(); ?>"><?php _e('Register for a free account'); ?></a></strong>
   </p>
 <?php
-    exit();
+    return;
   }
 
   $item = Item::newInstance()->findByPrimaryKey(intval(Params::getParam('item_id')));
@@ -14,17 +14,19 @@
 
   if(osc_item_user_id() !== osc_logged_user_id() && intval(Params::getParam('item_id'))) {
     _e("This is not your listing item!");
-    exit();
+    return;
   }
 
   $conn = getConnection();
   if (intval(Params::getParam('item_id'))) {
-    $operator = "=";
+    $query = "SELECT * FROM %st_message_room INNER JOIN %st_item ON fk_i_item_id = pk_i_id WHERE fk_i_item_id = %d AND fk_i_user_id = %d";
+    $message_rooms = $conn->osc_dbFetchResults($query, DB_TABLE_PREFIX, DB_TABLE_PREFIX, intval(Params::getParam('item_id')), osc_logged_user_id());
+    var_dump(intval(Params::getParam('item_id')), osc_logged_user_id());
+
   } else {
-    $operator = ">";
+    $query = "SELECT * FROM %st_message_room INNER JOIN %st_item ON fk_i_item_id = pk_i_id WHERE fk_i_buyer_id = %d OR fk_i_user_id = %d";
+    $message_rooms = $conn->osc_dbFetchResults($query, DB_TABLE_PREFIX, DB_TABLE_PREFIX, osc_logged_user_id(), osc_logged_user_id());
   }
-  $query = "SELECT * FROM %st_message_room WHERE fk_i_item_id ".$operator." %d";
-  $message_rooms = $conn->osc_dbFetchResults($query, DB_TABLE_PREFIX, intval(Params::getParam('item_id')));
 ?>
 <style>
   .message-room {

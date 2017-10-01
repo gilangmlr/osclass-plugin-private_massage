@@ -6,7 +6,7 @@
     <strong><a href="<?php echo osc_user_login_url(); ?>"><?php _e('Login'); ?></a></strong> or <strong><a href="<?php echo osc_register_account_url(); ?>"><?php _e('Register for a free account'); ?></a></strong>
   </p>
 <?php
-    exit();
+    return;
   }
 
   $conn = getConnection();
@@ -17,7 +17,7 @@
 
   if(intval($message_room['fk_i_buyer_id']) !== osc_logged_user_id() && osc_item_user_id() !== osc_logged_user_id()) {
     _e("This is not your private message!");
-    exit();
+    return;
   }
 ?>
 <style type="text/css">
