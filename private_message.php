@@ -77,7 +77,7 @@
             $class = 'yours';
           }
       ?>
-          <div class="message-container">
+          <div id="<?php echo $message['pk_i_message_id']?>" class="message-container">
             <div class="message <?php echo $class ?>">
               <div><?php echo htmlspecialchars($message['s_content']) ?></div>
               <div class="time"><?php echo $message['dt_delivery_time'] ?></div>
@@ -123,30 +123,86 @@
 <script>
   $('#messagesBox').scrollTop($('#messagesBox').get(0).scrollHeight);
   var ajax_url = "<?php echo osc_ajax_plugin_url('private_message/ajax_private_message.php') ?>";
-  $('#sendMessageButton').click(function() {
-      $.ajax({
-        type: "POST",
-        url: ajax_url,
-        dataType: 'json',
-        data: {
-          messageRoomId: "<?php echo intval(Params::getParam('message_room_id')) ?>",
-          senderId: "<?php echo osc_logged_user_id() ?>",
-          content: $('#messageBox').val()
-        },
-        cache: false,
+  var osc_logged_user_id = "<?php echo osc_logged_user_id() ?>";
+  var isActive = true;
 
-        success: function(data) {
-          $('#messagesBox').append($('<div class="message-container">\
-            <div class="message mine">\
-              <div>' + data["s_content"] + '</div>\
-              <div class="time">' + data["dt_delivery_time"] + '</div>\
-            </div>\
-          </div>'));
-          $('#messageBox').val('');
-          $('#messagesBox').animate({
-            scrollTop: $('#messagesBox').get(0).scrollHeight
-          }, 1000);
+  $().ready(function () {
+    pollServer();
+  });
+
+  function pollServer()
+  {
+    if (isActive)
+    {
+      window.setTimeout(function () {
+        if ($(".message-container:last-child").attr('id') === undefined) {
+          alert('undefined');
+          return;
         }
-      });
+        $.ajax({
+          url: ajax_url,
+          type: "POST",
+          dataType: "json",
+          data: {
+            messageRoomId: "<?php echo intval(Params::getParam('message_room_id')) ?>",
+            senderId: "<?php echo osc_logged_user_id() ?>",
+            content: $('#messageBox').val(),
+            mode: 'poll',
+            lastMessageId: $(".message-container:last-child").attr('id')
+          },
+          success: function (messages) {
+            for (var key in messages) {
+              var message = messages[key];
+              var className = 'yours';
+              if (message["fk_i_sender_id"] === osc_logged_user_id) {
+                className = 'mine';
+              }
+              $('#messagesBox').append($('<div id="' + message["pk_i_message_id"] + '" class="message-container">\
+                <div class="message '+className+'">\
+                  <div>' + message["s_content"] + '</div>\
+                  <div class="time">' + message["dt_delivery_time"] + '</div>\
+                </div>\
+              </div>'));
+            }
+            if (messages.length > 0) {
+              $('#messagesBox').animate({
+                scrollTop: $('#messagesBox').get(0).scrollHeight
+              }, 1000);
+            }
+            pollServer();
+          },
+          error: function () {
+          }});
+      }, 2500);
+    }
+  }
+  $('#sendMessageButton').click(function() {
+    isActive = false;
+    $.ajax({
+      type: "POST",
+      url: ajax_url,
+      dataType: 'json',
+      data: {
+        messageRoomId: "<?php echo intval(Params::getParam('message_room_id')) ?>",
+        senderId: "<?php echo osc_logged_user_id() ?>",
+        content: $('#messageBox').val()
+      },
+      cache: false,
+
+      success: function(message) {
+        $('#messagesBox').append($('<div id="' + message["pk_i_message_id"] + '" class="message-container">\
+          <div class="message mine">\
+            <div>' + message["s_content"] + '</div>\
+            <div class="time">' + message["dt_delivery_time"] + '</div>\
+          </div>\
+        </div>'));
+        $('#messageBox').val('');
+        $('#messagesBox').animate({
+          scrollTop: $('#messagesBox').get(0).scrollHeight
+        }, 1000);
+        isActive = true;
+        pollServer();
+      }
+    });
   });
 </script>
