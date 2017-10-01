@@ -33,7 +33,6 @@
     View::newInstance()->_exportVariableToView('item', $item);
 
     if (intval($message_room['fk_i_buyer_id']) !== osc_logged_user_id() && osc_item_user_id() !== osc_logged_user_id()) {
-        var_dump(intval($message_room['fk_i_buyer_id']) !== osc_logged_user_id(), osc_item_user_id() !== osc_logged_user_id());
         echo json_encode(["error" => "You are not authorized to use this message room."]);
         exit();
     }

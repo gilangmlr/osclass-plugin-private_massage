@@ -21,8 +21,6 @@
   if (intval(Params::getParam('item_id'))) {
     $query = "SELECT * FROM %st_message_room INNER JOIN %st_item ON fk_i_item_id = pk_i_id WHERE fk_i_item_id = %d AND fk_i_user_id = %d";
     $message_rooms = $conn->osc_dbFetchResults($query, DB_TABLE_PREFIX, DB_TABLE_PREFIX, intval(Params::getParam('item_id')), osc_logged_user_id());
-    var_dump(intval(Params::getParam('item_id')), osc_logged_user_id());
-
   } else {
     $query = "SELECT * FROM %st_message_room INNER JOIN %st_item ON fk_i_item_id = pk_i_id WHERE fk_i_buyer_id = %d OR fk_i_user_id = %d";
     $message_rooms = $conn->osc_dbFetchResults($query, DB_TABLE_PREFIX, DB_TABLE_PREFIX, osc_logged_user_id(), osc_logged_user_id());
