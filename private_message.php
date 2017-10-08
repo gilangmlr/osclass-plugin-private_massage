@@ -147,11 +147,11 @@
   var upload_url = "<?php echo osc_base_url() . 'oc-content/uploads/private-message/'; ?>";
   var osc_logged_user_id = "<?php echo osc_logged_user_id() ?>";
   var isActive = true;
-  var pollTimeout = 60000;
+  var pollTimeout = 5000;
   var waitingTrial = 0;
 
   $().ready(function () {
-    // pollServer();
+    pollServer();
   });
 
   function pollServer()
@@ -211,7 +211,7 @@
     var img = (message['s_image'] !== "")? '<a href="'+image_url+'"><img src="'+image_url+'" width="256px" /></a>' : "";
     var string = message['s_content'],
         substring = "Offered";
-    var content = string.indexOf(substring) !== -1? "<b>" + message['content'] + "</b>" : message['content'];
+    var content = string.indexOf(substring) !== -1? "<b>" + message['s_content'] + "</b>" : message['s_content'];
     $('#messagesBox').append($('<div id="' + message["pk_i_message_id"] + '" class="message-container">\
       <div class="message '+className+'">\
         '+img+'\
