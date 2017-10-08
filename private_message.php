@@ -107,10 +107,9 @@
     <form id="formMessage" enctype="multipart/form-data" method="POST">
       <input type="hidden" id="messageRoomId" name="messageRoomId" value="<?php echo intval(Params::getParam('message_room_id')) ?>">
       <input type="hidden" id="senderId" name="senderId" value="<?php echo osc_logged_user_id() ?>">
+      <input type="hidden" id="itemId" name="itemId" value="<?php echo osc_item_id() ?>">
       <div style="margin: 4px">
-        <script src="https://rawgit.com/jackmoore/autosize/master/dist/autosize.min.js"></script>
         <textarea id="messageBox" name="content" rows="2" style="width: 80%; resize: none"></textarea>
-        <script>autosize($('#messageBox'))</script>
         <input type="submit" id="sendMessageButton" value="Send">
       </div>
       <div style="margin: 4px">
@@ -266,14 +265,18 @@
     var content = "/offer";
     var messageRoomId = $("#messageRoomId").val();
     var senderId = $("#senderId").val();
+    var senderId = $("#itemId").val();
 
     var data = {
       price: price,
       content: content,
       messageRoomId: messageRoomId,
-      senderId: senderId
+      senderId: senderId,
+      itemId: itemId
     }
 
     sendMessage(data);
   });
 </script>
+<script src="https://rawgit.com/jackmoore/autosize/master/dist/autosize.min.js"></script>
+<script>autosize($('#messageBox'))</script>

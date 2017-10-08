@@ -3,8 +3,12 @@
 
     use Ramsey\Uuid\Uuid;
 
-    if (trim(Params::getParam('content')) === "" && $_FILES["image"]["error"] !== 0 && Params::getParam('mode') !== "poll") {
+    $mode = Params::getParam('mode');
+    if (trim(Params::getParam('content')) === "" && $_FILES["image"]["error"] !== 0 && $mode !== "poll") {
         echo json_encode(["error" => "Content cannot be empty."]);
+        if ($mode === "start") {
+            header("Location: " . osc_route_url('private-message-start', array('item_id' => intval(Params::getParam('itemId')))));
+        }
         exit();
     }
     if (intval(Params::getParam('senderId')) !== osc_logged_user_id()) {
@@ -31,17 +35,26 @@
         return $message;
     }
 
-    $message_room = $conn->osc_dbFetchResult("SELECT * FROM %st_message_room WHERE pk_i_message_room_id = %d", DB_TABLE_PREFIX, intval(Params::getParam('messageRoomId')));
+    $message_room_id = intval(Params::getParam('messageRoomId'));
+
+    if ($mode === "start") {
+        // assume not owner
+        $conn->osc_dbExec("INSERT INTO %st_message_room (fk_i_item_id, fk_i_buyer_id) VALUES (%d, %d)", DB_TABLE_PREFIX,  intval(Params::getParam('itemId')), osc_logged_user_id());
+        $message_room_id = $conn->get_last_id();
+    }
+
+    $message_room = $conn->osc_dbFetchResult("SELECT * FROM %st_message_room WHERE pk_i_message_room_id = %d", DB_TABLE_PREFIX, $message_room_id);
 
     $item = Item::newInstance()->findByPrimaryKey(intval($message_room['fk_i_item_id']));
     View::newInstance()->_exportVariableToView('item', $item);
 
     if (intval($message_room['fk_i_buyer_id']) !== osc_logged_user_id() && osc_item_user_id() !== osc_logged_user_id()) {
+        var_dump(intval($message_room['fk_i_buyer_id']), osc_item_user_id(), osc_logged_user_id());
         echo json_encode(["error" => "You are not authorized to use this message room."]);
         exit();
     }
 
-    if (Params::getParam('mode') === 'poll') {
+    if ($mode === 'poll') {
         $messages = $conn->osc_dbFetchResults("SELECT * FROM %st_message WHERE pk_i_message_id > %d AND fk_i_message_room_id = %d ORDER BY dt_delivery_time", DB_TABLE_PREFIX, intval(Params::getParam('lastMessageId')), intval(Params::getParam('messageRoomId')));
         $messages = array_map("formatDatetime", $messages);
         if (count($messages) > 48) {
@@ -69,9 +82,13 @@
         $content = "Offered " . (string) osc_format_price( ((float) Params::getParam('price')) * 1000000 );
     }
     
-    $conn->osc_dbExec("INSERT INTO %st_message (fk_i_message_room_id, fk_i_sender_id, s_content, s_image) VALUES (%d, %d, '%s', '%s')", DB_TABLE_PREFIX, intval(Params::getParam('messageRoomId')), intval(Params::getParam('senderId')), $content, $uuid4);
+    $conn->osc_dbExec("INSERT INTO %st_message (fk_i_message_room_id, fk_i_sender_id, s_content, s_image) VALUES (%d, %d, '%s', '%s')", DB_TABLE_PREFIX, $message_room_id, intval(Params::getParam('senderId')), $content, $uuid4);
     $message_id = $conn->get_last_id();
     $message = $conn->osc_dbFetchResult("SELECT * FROM %st_message WHERE pk_i_message_id = %d", DB_TABLE_PREFIX, $message_id);
+
+    if ($mode === "start") {
+        header("Location: " . osc_route_url('private-message', array('message_room_id' => $message_room_id)));
+    }
 
     $message = formatDatetime($message);
 
