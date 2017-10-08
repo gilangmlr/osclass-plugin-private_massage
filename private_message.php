@@ -113,7 +113,9 @@
     </form>
   </div>
   <div style="margin: 8px; padding: 8px; float: left; width: 36%; border: 1px solid rgb(234, 234, 234);">
-    <?php echo osc_item_title() ?> <br />
+    <a href="<?php echo osc_item_url(); ?>">
+      <?php echo osc_item_title() ?>
+    </a> <br />
     <br />
     <?php if (osc_count_item_resources()) { ?>
       <a href="<?php echo osc_item_url(); ?>"><img src="<?php echo osc_resource_url(); ?>" width="256px" height="56px" title="" alt="" /></a>
