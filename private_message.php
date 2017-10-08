@@ -88,9 +88,15 @@
           <div id="<?php echo $message['pk_i_message_id']?>" class="message-container">
             <div class="message <?php echo $class ?>">
             <?php if ($image_url !== "") { ?>
-              <img src="<?php echo $image_url ?>" width="256px" />
+              <a href="<?php echo $image_url ?>"><img src="<?php echo $image_url ?>" width="256px" /></a>
             <?php } ?>
-              <div><?php echo htmlspecialchars($message['s_content']) ?></div>
+              <div><?php
+                if (strpos($message['s_content'], 'Offered') !== false) {
+                  echo '<b>' . $message['s_content'] . '</b>';
+                } else {
+                  echo $message['s_content'];
+                }
+              ?></div>
               <div class="time"><?php echo $message['dt_delivery_time'] ?></div>
             </div>
           </div>
@@ -99,8 +105,8 @@
       ?>
     </div>
     <form id="formMessage" enctype="multipart/form-data" method="POST">
-      <input type="hidden" name="messageRoomId" value="<?php echo intval(Params::getParam('message_room_id')) ?>">
-      <input type="hidden" name="senderId" value="<?php echo osc_logged_user_id() ?>">
+      <input type="hidden" id="messageRoomId" name="messageRoomId" value="<?php echo intval(Params::getParam('message_room_id')) ?>">
+      <input type="hidden" id="senderId" name="senderId" value="<?php echo osc_logged_user_id() ?>">
       <div style="margin: 4px">
         <script src="https://rawgit.com/jackmoore/autosize/master/dist/autosize.min.js"></script>
         <textarea id="messageBox" name="content" rows="2" style="width: 80%; resize: none"></textarea>
@@ -130,7 +136,7 @@
     <?php echo osc_item_formated_price(); ?> <br />
   </div>
   <div style="margin: 8px; padding: 8px; float: left; width: 36%; border: 1px solid rgb(234, 234, 234);">
-    <input type="number" value="<?php echo (osc_item_price()/1000000) ?>"> <button>Make offer</button>
+    <input id="offerPrice" type="number" value="<?php echo (osc_item_price()/1000000) ?>"> <button id="offerButton">Make offer</button>
   </div>
   <div style="clear: both;"></div>
 </div>
@@ -176,15 +182,7 @@
               if (message["fk_i_sender_id"] === osc_logged_user_id) {
                 className = 'mine';
               }
-              var image_url = upload_url + message["s_image"];
-              var img = (message['s_image'] !== "")? '<img src="'+image_url+'" width="256px" />' : "";
-              $('#messagesBox').append($('<div id="' + message["pk_i_message_id"] + '" class="message-container">\
-                <div class="message '+className+'">\
-                  '+img+'\
-                  <div>' + message["s_content"] + '</div>\
-                  <div class="time">' + message["dt_delivery_time"] + '</div>\
-                </div>\
-              </div>'));
+              appendMessage(message, className);
             }
             if (newMessage) {
               waitingTrial = 0;
@@ -207,32 +205,34 @@
       }, pollTimeout);
     }
   }
-  $('#formMessage').submit(function(e) {
-    e.preventDefault();
-    if ($('#messageBox').val().trim() === "") {
-      $('#messageBox').val('');
-      // return;
-    }
-    isActive = false;
+
+  function appendMessage(message, className) {
+    var image_url = upload_url + message["s_image"];
+    var img = (message['s_image'] !== "")? '<a href="'+image_url+'"><img src="'+image_url+'" width="256px" /></a>' : "";
+    var string = message['s_content'],
+        substring = "Offered";
+    var content = string.indexOf(substring) !== -1? "<b>" + message['content'] + "</b>" : message['content'];
+    $('#messagesBox').append($('<div id="' + message["pk_i_message_id"] + '" class="message-container">\
+      <div class="message '+className+'">\
+        '+img+'\
+        <div>' + content + '</div>\
+        <div class="time">' + message["dt_delivery_time"] + '</div>\
+      </div>\
+    </div>'));
+  }
+
+  function sendMessage(data, ct, pd) {
     $.ajax({
       type: "POST",
       url: ajax_url,
-      contentType: false,
-      processData: false,
+      contentType: ct,
+      processData: pd,
       dataType: 'json',
-      data: new FormData(this),
+      data: data,
       cache: false,
 
       success: function(message) {
-        var image_url = upload_url + message["s_image"];
-        var img = (message['s_image'] !== "")? '<img src="'+image_url+'" width="256px" />' : "";
-        $('#messagesBox').append($('<div id="' + message["pk_i_message_id"] + '" class="message-container">\
-          <div class="message mine">\
-            '+img+'\
-            <div>' + message["s_content"] + '</div>\
-            <div class="time">' + message["dt_delivery_time"] + '</div>\
-          </div>\
-        </div>'));
+        appendMessage(message, 'mine');
         $('#formMessage')[0].reset();
         $('#messagesBox').animate({
           scrollTop: $('#messagesBox').get(0).scrollHeight
@@ -241,11 +241,37 @@
         pollServer();
       }
     });
+  }
+
+  $('#formMessage').submit(function(e) {
+    e.preventDefault();
+    if ($('#messageBox').val().trim() === "") {
+      $('#messageBox').val('');
+      // return;
+    }
+    isActive = false;
+    sendMessage(new FormData(this), false, false);
   });
 
   $('#formImage').attr('action', ajax_url);
 
   $('#inputImage').change(function() {
     $('#formImage').submit();
+  });
+
+  $('#offerButton').click(function() {
+    var price = $('#offerPrice').val();
+    var content = "/offer";
+    var messageRoomId = $("#messageRoomId").val();
+    var senderId = $("#senderId").val();
+
+    var data = {
+      price: price,
+      content: content,
+      messageRoomId: messageRoomId,
+      senderId: senderId
+    }
+
+    sendMessage(data);
   });
 </script>

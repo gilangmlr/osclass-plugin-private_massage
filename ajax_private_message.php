@@ -59,8 +59,13 @@
         }
 
     }
+
+    $content = htmlentities(Params::getParam('content'));
+    if ($content === "/offer") {
+        $content = "Offered " . (string) osc_format_price( ((float) Params::getParam('price')) * 1000000 );
+    }
     
-    $conn->osc_dbExec("INSERT INTO %st_message (fk_i_message_room_id, fk_i_sender_id, s_content, s_image) VALUES (%d, %d, '%s', '%s')", DB_TABLE_PREFIX, intval(Params::getParam('messageRoomId')), intval(Params::getParam('senderId')), Params::getParam('content'), $uuid4);
+    $conn->osc_dbExec("INSERT INTO %st_message (fk_i_message_room_id, fk_i_sender_id, s_content, s_image) VALUES (%d, %d, '%s', '%s')", DB_TABLE_PREFIX, intval(Params::getParam('messageRoomId')), intval(Params::getParam('senderId')), $content, $uuid4);
     $message_id = $conn->get_last_id();
     $message = $conn->osc_dbFetchResult("SELECT * FROM %st_message WHERE pk_i_message_id = %d", DB_TABLE_PREFIX, $message_id);
 
