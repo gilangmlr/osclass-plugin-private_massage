@@ -14,19 +14,12 @@
       '</p>';
   <?php } else {
     $conn = getConnection();
-    if( ( osc_logged_user_id() == osc_item_user_id() ) && osc_logged_user_id() != 0 ) { ?>
+    if (osc_logged_user_id() === osc_item_user_id()) { ?>
       var redirectLocation = '<?php echo osc_route_url('private-message-list', array('item_id' => osc_item_id())); ?>';
       content += '<button id="chatWithSeller" onClick="window.location.href='+"'"+redirectLocation+"'"+'">View Chats</button>';
     <?php } else {
-      $message_room = $conn->osc_dbFetchResult("SELECT * FROM %st_message_room WHERE fk_i_item_id = %d AND fk_i_buyer_id = %d", DB_TABLE_PREFIX, osc_item_id(), osc_logged_user_id());
-      if(!isset($message_room['pk_i_message_room_id'])) {
-        $conn->osc_dbExec("INSERT INTO %st_message_room (fk_i_item_id, fk_i_buyer_id) VALUES (%d, %d)", DB_TABLE_PREFIX,  osc_item_id(), osc_logged_user_id());
-        $message_room_id = $conn->get_last_id();
-      } else {
-        $message_room_id = $message_room['pk_i_message_room_id'];
-      }
     ?>
-      var redirectLocation = '<?php echo osc_route_url('private-message', array('message_room_id' => $message_room_id)); ?>';
+      var redirectLocation = '<?php echo osc_route_url('private-message-start', array('item_id' => osc_item_id())); ?>';
       content += '<button id="chatWithSeller" onClick="window.location.href='+"'"+redirectLocation+"'"+'">Chat with Seller</button>';
     <?php } ?>
   <?php } ?>

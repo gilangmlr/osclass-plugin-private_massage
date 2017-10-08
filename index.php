@@ -50,6 +50,7 @@ Plugin update URI: mailto:gilangmlr@gmail.com
   }
 
   osc_add_route('private-message', 'private-message/([0-9]+)', 'private-message/{message_room_id}', osc_plugin_folder(__FILE__).'private_message.php');
+  osc_add_route('private-message-start', 'private-message/start/([0-9]+)', 'private-message/start/{item_id}', osc_plugin_folder(__FILE__).'private_message_start.php');
   osc_add_route('private-message-list', 'private-message/list/([0-9]*)', 'private-message/list/{item_id}', osc_plugin_folder(__FILE__).'private_message_list.php');
 
   osc_add_hook('footer', 'hide_contact');
