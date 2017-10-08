@@ -135,10 +135,12 @@
     <b>Price:</b> <br />
     <?php echo osc_item_formated_price(); ?> <br />
   </div>
-  <div style="margin: 8px; padding: 8px; float: left; width: 36%; border: 1px solid rgb(234, 234, 234);">
-    <input id="offerPrice" type="number" value="<?php echo (osc_item_price()/1000000) ?>"> <button id="offerButton">Make offer</button>
-  </div>
-  <div style="clear: both;"></div>
+  <?php if (osc_item_user_id() !== osc_logged_user_id()) { ?>
+    <div style="margin: 8px; padding: 8px; float: left; width: 36%; border: 1px solid rgb(234, 234, 234);">
+      <input id="offerPrice" type="number" value="<?php echo (osc_item_price()/1000000) ?>"> <button id="offerButton">Make offer</button>
+    </div>
+    <div style="clear: both;"></div>
+  <?php } ?>
 </div>
 
 <script>

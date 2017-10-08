@@ -62,6 +62,10 @@
 
     $content = htmlentities(Params::getParam('content'));
     if ($content === "/offer") {
+        if (osc_item_user_id() === osc_logged_user_id()) {
+            echo json_encode(["error" => "You can not make offer to your own item."]);
+            exit();
+        }
         $content = "Offered " . (string) osc_format_price( ((float) Params::getParam('price')) * 1000000 );
     }
     
