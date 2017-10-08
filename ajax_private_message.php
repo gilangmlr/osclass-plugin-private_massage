@@ -1,5 +1,9 @@
 <?php
-    if (trim(Params::getParam('content')) === "" && Params::getParam('mode') !== "poll") {
+    require 'vendor/autoload.php';
+
+    use Ramsey\Uuid\Uuid;
+
+    if (trim(Params::getParam('content')) === "" && $_FILES["image"]["error"] !== 0 && Params::getParam('mode') !== "poll") {
         echo json_encode(["error" => "Content cannot be empty."]);
         exit();
     }
@@ -47,8 +51,16 @@
         }
         exit();
     }
+
+    if ($_FILES["image"]["error"] === 0) {
+        $uuid4 = Uuid::uuid4()->toString();
+        $path = osc_get_preference('upload_path', 'private_message').$uuid4;
+        if (move_uploaded_file($_FILES["image"]["tmp_name"], $path)) {
+        }
+
+    }
     
-    $conn->osc_dbExec("INSERT INTO %st_message (fk_i_message_room_id, fk_i_sender_id, s_content) VALUES (%d, %d, '%s')", DB_TABLE_PREFIX, intval(Params::getParam('messageRoomId')), intval(Params::getParam('senderId')), Params::getParam('content'));
+    $conn->osc_dbExec("INSERT INTO %st_message (fk_i_message_room_id, fk_i_sender_id, s_content, s_image) VALUES (%d, %d, '%s', '%s')", DB_TABLE_PREFIX, intval(Params::getParam('messageRoomId')), intval(Params::getParam('senderId')), Params::getParam('content'), $uuid4);
     $message_id = $conn->get_last_id();
     $message = $conn->osc_dbFetchResult("SELECT * FROM %st_message WHERE pk_i_message_id = %d", DB_TABLE_PREFIX, $message_id);
 

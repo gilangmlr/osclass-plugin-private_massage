@@ -32,6 +32,10 @@
     border-radius: 4px;
   }
 
+  .message img {
+    margin-bottom: 4px;
+  }
+
   .mine {
     float: right;
     margin-left: 32px;
@@ -75,9 +79,17 @@
           } else {
             $class = 'yours';
           }
+
+          $image_url = "";
+          if ($message['s_image'] !== "") {
+            $image_url = osc_base_url() . 'oc-content/uploads/private-message/' . $message['s_image'];
+          }
       ?>
           <div id="<?php echo $message['pk_i_message_id']?>" class="message-container">
             <div class="message <?php echo $class ?>">
+            <?php if ($image_url !== "") { ?>
+              <img src="<?php echo $image_url ?>" width="256px" />
+            <?php } ?>
               <div><?php echo htmlspecialchars($message['s_content']) ?></div>
               <div class="time"><?php echo $message['dt_delivery_time'] ?></div>
             </div>
@@ -86,23 +98,25 @@
         }
       ?>
     </div>
-    <div style="margin: 4px">
-      <script src="https://rawgit.com/jackmoore/autosize/master/dist/autosize.min.js"></script>
-      <textarea id="messageBox" rows="2" style="width: 80%; resize: none"></textarea>
-      <script>autosize($('#messageBox'))</script>
-      <button id="sendMessageButton">Send</button>
-    </div>
-    <div style="margin: 4px">
-      <input type="file" name="pic" accept="image/*">
-    </div>
+    <form id="formMessage" enctype="multipart/form-data" method="POST">
+      <input type="hidden" name="messageRoomId" value="<?php echo intval(Params::getParam('message_room_id')) ?>">
+      <input type="hidden" name="senderId" value="<?php echo osc_logged_user_id() ?>">
+      <div style="margin: 4px">
+        <script src="https://rawgit.com/jackmoore/autosize/master/dist/autosize.min.js"></script>
+        <textarea id="messageBox" name="content" rows="2" style="width: 80%; resize: none"></textarea>
+        <script>autosize($('#messageBox'))</script>
+        <input type="submit" id="sendMessageButton" value="Send">
+      </div>
+      <div style="margin: 4px">
+        <input id="inputImage" type="file" name="image" accept="image/*" />
+      </div>
+    </form>
   </div>
   <div style="margin: 8px; padding: 8px; float: left; width: 36%; border: 1px solid rgb(234, 234, 234);">
-    <a href="<?php echo osc_item_url(); ?>">
-      <?php echo osc_item_title() ?>
-    </a> <br />
+    <?php echo osc_item_title() ?> <br />
     <br />
     <?php if (osc_count_item_resources()) { ?>
-      <a href="<?php echo osc_item_url(); ?>"><img src="<?php echo osc_resource_thumbnail_url(); ?>" width="75px" height="56px" title="" alt="" /></a>
+      <a href="<?php echo osc_item_url(); ?>"><img src="<?php echo osc_resource_url(); ?>" width="256px" height="56px" title="" alt="" /></a>
     <?php } else { ?>
       <img src="<?php echo osc_current_web_theme_url('images/no_photo.gif'); ?>" title="" alt="" />
     <?php } ?> <br />
@@ -122,11 +136,13 @@
 <script>
   $('#messagesBox').scrollTop($('#messagesBox').get(0).scrollHeight);
   var ajax_url = "<?php echo osc_ajax_plugin_url('private_message/ajax_private_message.php') ?>";
+  var upload_url = "<?php echo osc_base_url() . 'oc-content/uploads/private-message/'; ?>";
   var osc_logged_user_id = "<?php echo osc_logged_user_id() ?>";
   var isActive = true;
+  var pollTimeout = 60000;
 
   $().ready(function () {
-    pollServer();
+    // pollServer();
   });
 
   function pollServer()
@@ -139,24 +155,29 @@
           type: "POST",
           dataType: "json",
           data: {
-            messageRoomId: "<?php echo intval(Params::getParam('message_room_id')) ?>",
-            senderId: "<?php echo osc_logged_user_id() ?>",
-            content: $('#messageBox').val(),
+            messageRoomId: $('#formMessage input[name=messageRoomId]').val(),
+            senderId: $('#formMessage input[name=senderId]').val(),
+            content: '',
             mode: 'poll',
             lastMessageId: $(".message-container:last-child").attr('id')
           },
           success: function (messages) {
+            pollTimeout = (pollTimeout === 5000)? 60000 : 5000;
             for (var key in messages) {
               if (messages['error']) {
                 break;
               }
+              pollTimeout = (pollTimeout === 60000)? 5000 : 60000;
               var message = messages[key];
               var className = 'yours';
               if (message["fk_i_sender_id"] === osc_logged_user_id) {
                 className = 'mine';
               }
+              var image_url = upload_url + message["s_image"];
+              var img = (message['s_image'] !== "")? '<img src="'+image_url+'" width="256px" />' : "";
               $('#messagesBox').append($('<div id="' + message["pk_i_message_id"] + '" class="message-container">\
                 <div class="message '+className+'">\
+                  '+img+'\
                   <div>' + message["s_content"] + '</div>\
                   <div class="time">' + message["dt_delivery_time"] + '</div>\
                 </div>\
@@ -171,34 +192,36 @@
           },
           error: function () {
           }});
-      }, 5000);
+      }, pollTimeout);
     }
   }
-  $('#sendMessageButton').click(function() {
+  $('#formMessage').submit(function(e) {
+    e.preventDefault();
     if ($('#messageBox').val().trim() === "") {
       $('#messageBox').val('');
-      return;
+      // return;
     }
     isActive = false;
     $.ajax({
       type: "POST",
       url: ajax_url,
+      contentType: false,
+      processData: false,
       dataType: 'json',
-      data: {
-        messageRoomId: "<?php echo intval(Params::getParam('message_room_id')) ?>",
-        senderId: "<?php echo osc_logged_user_id() ?>",
-        content: $('#messageBox').val()
-      },
+      data: new FormData(this),
       cache: false,
 
       success: function(message) {
+        var image_url = upload_url + message["s_image"];
+        var img = (message['s_image'] !== "")? '<img src="'+image_url+'" width="256px" />' : "";
         $('#messagesBox').append($('<div id="' + message["pk_i_message_id"] + '" class="message-container">\
           <div class="message mine">\
+            '+img+'\
             <div>' + message["s_content"] + '</div>\
             <div class="time">' + message["dt_delivery_time"] + '</div>\
           </div>\
         </div>'));
-        $('#messageBox').val('');
+        $('#formMessage')[0].reset();
         $('#messagesBox').animate({
           scrollTop: $('#messagesBox').get(0).scrollHeight
         }, 1000);
@@ -206,5 +229,11 @@
         pollServer();
       }
     });
+  });
+
+  $('#formImage').attr('action', ajax_url);
+
+  $('#inputImage').change(function() {
+    $('#formImage').submit();
   });
 </script>
