@@ -142,6 +142,7 @@
   var osc_logged_user_id = "<?php echo osc_logged_user_id() ?>";
   var isActive = true;
   var pollTimeout = 60000;
+  var waitingTrial = 0;
 
   $().ready(function () {
     // pollServer();
@@ -164,12 +165,12 @@
             lastMessageId: $(".message-container:last-child").attr('id')
           },
           success: function (messages) {
-            pollTimeout = (pollTimeout === 5000)? 60000 : 5000;
+            var newMessage = false;
             for (var key in messages) {
               if (messages['error']) {
                 break;
               }
-              pollTimeout = (pollTimeout === 60000)? 5000 : 60000;
+              newMessage = true;
               var message = messages[key];
               var className = 'yours';
               if (message["fk_i_sender_id"] === osc_logged_user_id) {
@@ -184,6 +185,15 @@
                   <div class="time">' + message["dt_delivery_time"] + '</div>\
                 </div>\
               </div>'));
+            }
+            if (newMessage) {
+              waitingTrial = 0;
+              pollTimeout = 5000;
+            } else {
+              waitingTrial++;
+              if (waitingTrial === 60) {
+                pollTimeout = 60000;
+              }
             }
             if (messages.length > 0) {
               $('#messagesBox').animate({
