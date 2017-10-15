@@ -10,7 +10,7 @@
   }
 
   $conn = getConnection();
-  $message_room = $conn->osc_dbFetchResult("SELECT * FROM %st_message_room WHERE pk_i_message_room_id = %d", DB_TABLE_PREFIX, intval(Params::getParam('message_room_id')));
+  $message_room = PMModel::newInstance()->getMessageRoomById(intval(Params::getParam('message_room_id')));
 
   $item = Item::newInstance()->findByPrimaryKey(intval($message_room['fk_i_item_id']));
   View::newInstance()->_exportVariableToView('item', $item);
@@ -59,21 +59,8 @@
   <div style="margin: 8px; float: left; width: 56%; border: 1px solid rgb(234, 234, 234);">
     <div id="messagesBox" style="overflow: auto; margin: 4px; height: 512px; border: 1px solid rgb(234, 234, 234);">
       <?php
-        $messages = $conn->osc_dbFetchResults("SELECT * FROM %st_message WHERE fk_i_message_room_id = %d ORDER BY dt_delivery_time", DB_TABLE_PREFIX, intval(Params::getParam('message_room_id')));
+        $messages = $messages = PMModel::newInstance()->getAllMessages(intval(Params::getParam('message_room_id')));
         foreach ($messages as $key => $message) {
-          $time = strtotime($message['dt_delivery_time']);
-
-          $my_date = new DateTime($message['dt_delivery_time']);
-          if($my_date->format('Y-m-d') === date('Y-m-d')) {
-              $message['dt_delivery_time'] = 'today';
-              $message['dt_delivery_time'] .= date(' g:', $time);
-          } else {
-              $message['dt_delivery_time'] = date('n/j g:', $time);
-          }
-
-          $message['dt_delivery_time'] .= intval(date('i', $time));
-          $message['dt_delivery_time'] .= date(' A', $time);
-
           if (intval($message['fk_i_sender_id']) === osc_logged_user_id()) {
             $class = 'mine';
           } else {

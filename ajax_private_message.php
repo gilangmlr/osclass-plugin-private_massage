@@ -16,61 +16,30 @@
         exit();
     }
 
-    $conn = getConnection();
-
-    function formatDatetime($message) {
-        $time = strtotime($message['dt_delivery_time']);
-
-        $my_date = new DateTime($message['dt_delivery_time']);
-        if($my_date->format('Y-m-d') === date('Y-m-d')) {
-            $message['dt_delivery_time'] = 'today';
-            $message['dt_delivery_time'] .= date(' g:', $time);
-        } else {
-            $message['dt_delivery_time'] = date('n/j g:', $time);
-        }
-
-        $message['dt_delivery_time'] .= intval(date('i', $time));
-        $message['dt_delivery_time'] .= date(' A', $time);
-
-        return $message;
-    }
-
-    $message_room_id = intval(Params::getParam('messageRoomId'));
-
     if ($mode === "start") {
-        try {
-            // assume not owner
-            $conn->osc_dbExec("INSERT INTO %st_message_room (fk_i_item_id, fk_i_buyer_id) VALUES (%d, %d)", DB_TABLE_PREFIX,  intval(Params::getParam('itemId')), osc_logged_user_id());
-            $message_room_id = $conn->get_last_id();
-        } catch (Exception $e) {
-            $conn->rollback();
-            echo $e->getMessage();
-        }
+        // assume not owner
+        $message_room_id = PMModel::newInstance()->createUserMessageRoom(intval(Params::getParam('itemId')));
+    } else {
+        $message_room_id = intval(Params::getParam('messageRoomId'));
     }
 
-    $message_room = $conn->osc_dbFetchResult("SELECT * FROM %st_message_room WHERE pk_i_message_room_id = %d", DB_TABLE_PREFIX, $message_room_id);
+    $message_room = PMModel::newInstance()->getMessageRoomById($message_room_id);
 
     $item = Item::newInstance()->findByPrimaryKey(intval($message_room['fk_i_item_id']));
     View::newInstance()->_exportVariableToView('item', $item);
 
     if (intval($message_room['fk_i_buyer_id']) !== osc_logged_user_id() && osc_item_user_id() !== osc_logged_user_id()) {
-        var_dump(Params::getParamsAsArray('post'), osc_logged_user_id());
         echo json_encode(["error" => "You are not authorized to use this message room."]);
         exit();
     }
 
     if ($mode === 'poll') {
-        $messages = $conn->osc_dbFetchResults("SELECT * FROM %st_message WHERE pk_i_message_id > %d AND fk_i_message_room_id = %d ORDER BY dt_delivery_time", DB_TABLE_PREFIX, intval(Params::getParam('lastMessageId')), intval(Params::getParam('messageRoomId')));
-        $messages = array_map("formatDatetime", $messages);
-        if (count($messages) > 48) {
-            echo json_encode(['error'=> 'something wrong', 'sql'=> "SELECT * FROM oc_t_message WHERE pk_i_message_id > ".intval(Params::getParam('lastMessageId'))." AND fk_i_message_room_id = ".intval(Params::getParam('messageRoomId'))." ORDER BY dt_delivery_time"]);
-        } else {
-            echo json_encode($messages, JSON_UNESCAPED_SLASHES);
-        }
+        $messages = PMModel::newInstance()->getMessagesSinceLastMessageId(intval(Params::getParam('messageRoomId')), intval(Params::getParam('lastMessageId')));
         exit();
     }
 
-    if ($_FILES["image"]["error"] === 0) {
+    $uuid4 = "";
+    if (isset($_FILES["image"]) && $_FILES["image"]["error"] === 0) {
         $uuid4 = Uuid::uuid4()->toString();
         $path = osc_get_preference('upload_path', 'private_message').$uuid4;
         if (move_uploaded_file($_FILES["image"]["tmp_name"], $path)) {
@@ -86,16 +55,15 @@
         }
         $content = "Offered " . (string) osc_format_price( ((float) Params::getParam('price')) * 1000000 );
     }
-    
-    $conn->osc_dbExec("INSERT INTO %st_message (fk_i_message_room_id, fk_i_sender_id, s_content, s_image) VALUES (%d, %d, '%s', '%s')", DB_TABLE_PREFIX, $message_room_id, intval(Params::getParam('senderId')), $content, $uuid4);
-    $message_id = $conn->get_last_id();
-    $message = $conn->osc_dbFetchResult("SELECT * FROM %st_message WHERE pk_i_message_id = %d", DB_TABLE_PREFIX, $message_id);
+
+    $message_id = PMModel::newInstance()->insertMessage(['fk_i_message_room_id' => $message_room_id,
+        'fk_i_sender_id' => intval(Params::getParam('senderId')), 's_content' => $content, 's_image' => $uuid4]);
+
+    $message =PMModel::newInstance()->getMessageById($message_id);
 
     if ($mode === "start") {
         header("Location: " . osc_route_url('private-message', array('message_room_id' => $message_room_id)));
     }
-
-    $message = formatDatetime($message);
 
     echo json_encode($message, JSON_UNESCAPED_SLASHES);
 ?>
