@@ -4,7 +4,7 @@
     use Ramsey\Uuid\Uuid;
 
     $mode = Params::getParam('mode');
-    if (trim(Params::getParam('content')) === "" && $_FILES["image"]["error"] !== 0 && $mode !== "poll") {
+    if (trim(Params::getParam('content')) === "" && isset($_FILES["image"]) && $_FILES["image"]["error"] !== 0 && $mode !== "poll") {
         echo json_encode(["error" => "Content cannot be empty."]);
         if ($mode === "start") {
             header("Location: " . osc_route_url('private-message-start', array('item_id' => intval(Params::getParam('itemId')))));
@@ -38,9 +38,14 @@
     $message_room_id = intval(Params::getParam('messageRoomId'));
 
     if ($mode === "start") {
-        // assume not owner
-        $conn->osc_dbExec("INSERT INTO %st_message_room (fk_i_item_id, fk_i_buyer_id) VALUES (%d, %d)", DB_TABLE_PREFIX,  intval(Params::getParam('itemId')), osc_logged_user_id());
-        $message_room_id = $conn->get_last_id();
+        try {
+            // assume not owner
+            $conn->osc_dbExec("INSERT INTO %st_message_room (fk_i_item_id, fk_i_buyer_id) VALUES (%d, %d)", DB_TABLE_PREFIX,  intval(Params::getParam('itemId')), osc_logged_user_id());
+            $message_room_id = $conn->get_last_id();
+        } catch (Exception $e) {
+            $conn->rollback();
+            echo $e->getMessage();
+        }
     }
 
     $message_room = $conn->osc_dbFetchResult("SELECT * FROM %st_message_room WHERE pk_i_message_room_id = %d", DB_TABLE_PREFIX, $message_room_id);
@@ -49,7 +54,7 @@
     View::newInstance()->_exportVariableToView('item', $item);
 
     if (intval($message_room['fk_i_buyer_id']) !== osc_logged_user_id() && osc_item_user_id() !== osc_logged_user_id()) {
-        var_dump(intval($message_room['fk_i_buyer_id']), osc_item_user_id(), osc_logged_user_id());
+        var_dump(Params::getParamsAsArray('post'), osc_logged_user_id());
         echo json_encode(["error" => "You are not authorized to use this message room."]);
         exit();
     }

@@ -53,7 +53,7 @@
   <?php } ?>
 </div>
 <script type="text/javascript">
-  $('#messageBox').change(function() {
+  $('#messageBox').keyup(function() {
     if ($('#messageBox').val() === "") {
       $("#sendMessageButton").prop('disabled', true);
     } else {

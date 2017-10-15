@@ -10,35 +10,16 @@ Short Name: pm
 Plugin update URI: mailto:gilangmlr@gmail.com
 */
 
+  require_once 'PMModel.php';
+
   function custom_function_call_after_install() {
-    $conn = getConnection() ;
-    $conn->autocommit(false);
-    try {
-      $path = osc_plugin_resource('private_message/struct.sql');
-      $sql = file_get_contents($path);
-      $conn->osc_dbImportSQL($sql);
-      $conn->commit();
-    } catch (Exception $e) {
-      $conn->rollback();
-      echo $e->getMessage();
-    }
-    $conn->autocommit(true);
+    PMModel::newInstance()->install();
     @mkdir(osc_content_path().'uploads/private-message/');
     osc_set_preference('upload_path', osc_content_path().'uploads/private-message/', 'private_message', 'STRING');
   }
 
   function custom_function_call_after_uninstall() {
-    $conn = getConnection() ;
-    $conn->autocommit(false);
-    try {
-      $conn->osc_dbExec('DROP TABLE %st_message', DB_TABLE_PREFIX);
-      $conn->osc_dbExec('DROP TABLE %st_message_room', DB_TABLE_PREFIX);
-      $conn->commit();
-    } catch (Exception $e) {
-      $conn->rollback();
-      echo $e->getMessage();
-    }
-    $conn->autocommit(true);
+    PMModel::newInstance()->uninstall();
     $dirname = osc_get_preference('upload_path', 'private_message');
     @array_map('unlink', glob("$dirname/*"));
     @rmdir($dirname);
