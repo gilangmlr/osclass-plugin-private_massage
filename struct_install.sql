@@ -46,14 +46,14 @@ CREATE TABLE IF NOT EXISTS /*TABLE_PREFIX*/t_message_room_status (
 
 DELIMITER |
 
-CREATE TRIGGER IF NOT EXISTS insert_message_room_id AFTER INSERT ON /*TABLE_PREFIX*/t_message_room
+CREATE TRIGGER insert_message_room_id AFTER INSERT ON /*TABLE_PREFIX*/t_message_room
   FOR EACH ROW
   BEGIN
     INSERT INTO /*TABLE_PREFIX*/t_message_room_status (pfk_i_message_room_id) VALUES (NEW.pk_i_message_room_id);
   END;
 |
 
-CREATE TRIGGER IF NOT EXISTS update_last_message_id AFTER INSERT ON /*TABLE_PREFIX*/t_message
+CREATE TRIGGER update_last_message_id AFTER INSERT ON /*TABLE_PREFIX*/t_message
   FOR EACH ROW
   BEGIN
     UPDATE /*TABLE_PREFIX*/t_message_room_status SET fk_i_last_message_id = NEW.pk_i_message_id
@@ -61,7 +61,7 @@ CREATE TRIGGER IF NOT EXISTS update_last_message_id AFTER INSERT ON /*TABLE_PREF
   END;
 |
 
-CREATE TRIGGER IF NOT EXISTS update_message_offer_id AFTER INSERT ON /*TABLE_PREFIX*/t_message_offer
+CREATE TRIGGER update_message_offer_id AFTER INSERT ON /*TABLE_PREFIX*/t_message_offer
   FOR EACH ROW
   BEGIN
     UPDATE /*TABLE_PREFIX*/t_message_room_status SET e_offer_status = 'made', fk_i_message_offer_id = NEW.pfk_i_message_offer_id
