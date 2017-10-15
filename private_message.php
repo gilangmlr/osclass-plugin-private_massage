@@ -162,6 +162,7 @@
             var newMessage = false;
             for (var key in messages) {
               if (messages['error']) {
+                alert(JSON.stringify(messages));
                 break;
               }
               newMessage = true;
@@ -220,6 +221,10 @@
       cache: false,
 
       success: function(message) {
+        if (message['error']) {
+          alert(JSON.stringify(message));
+          return;
+        }
         appendMessage(message, 'mine');
         $('#formMessage')[0].reset();
         $('#messagesBox').animate({
@@ -252,7 +257,7 @@
     var content = "/offer";
     var messageRoomId = $("#messageRoomId").val();
     var senderId = $("#senderId").val();
-    var senderId = $("#itemId").val();
+    var itemId = $("#itemId").val();
 
     var data = {
       price: price,
@@ -261,7 +266,6 @@
       senderId: senderId,
       itemId: itemId
     }
-
     sendMessage(data);
   });
 </script>

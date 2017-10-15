@@ -61,6 +61,15 @@ CREATE TRIGGER IF NOT EXISTS update_last_message_id AFTER INSERT ON /*TABLE_PREF
   END;
 |
 
+CREATE TRIGGER IF NOT EXISTS update_message_offer_id AFTER INSERT ON /*TABLE_PREFIX*/t_message_offer
+  FOR EACH ROW
+  BEGIN
+    UPDATE /*TABLE_PREFIX*/t_message_room_status SET e_offer_status = 'made'
+        WHERE pfk_i_message_room_id IN
+            (SELECT fk_i_message_room_id FROM /*TABLE_PREFIX*/t_message WHERE pk_i_message_id = pfk_i_message_id);
+  END;
+|
+
 DELIMITER ;
 
 CREATE TABLE IF NOT EXISTS /*TABLE_PREFIX*/t_message_item_status (

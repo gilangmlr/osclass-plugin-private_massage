@@ -38,50 +38,51 @@
             $this->import('private_message/struct_uninstall.sql');
         }
 
-        public function getUserMessageRooms()
+        public function _getUserMessageRooms($id = '', $itemId = '')
         {
             $this->dao->select();
             $this->dao->from(DB_TABLE_PREFIX . 't_message_room');
-            $this->dao->join(DB_TABLE_PREFIX . 't_item', 'fk_i_item_id = pk_i_id' , 'INNER');
-            $this->dao->where('fk_i_buyer_id', osc_logged_user_id());
-            $this->dao->orWhere('fk_i_user_id', osc_logged_user_id());
+
+            if ($id === '') {
+                $this->dao->join(DB_TABLE_PREFIX . 't_item AS i', 'fk_i_item_id = i.pk_i_id' , 'INNER');
+                $this->dao->join(DB_TABLE_PREFIX . 't_item_description AS id', 'id.fk_i_item_id = i.pk_i_id' , 'INNER');
+                $this->dao->join(DB_TABLE_PREFIX . 't_message_room_status', 'pk_i_message_room_id = pfk_i_message_room_id' , 'INNER');
+                $this->dao->join(DB_TABLE_PREFIX . 't_message', 'pk_i_message_id = fk_i_last_message_id' , 'INNER');
+                $this->dao->where('fk_i_user_id', osc_logged_user_id());
+                if ($itemId !== '') {
+                    $this->dao->where('fk_i_item_id', $itemId);
+                } else {
+                    $this->dao->orWhere('fk_i_buyer_id', osc_logged_user_id());
+                }
+            } else {
+                $this->dao->where('pk_i_message_room_id', $id);
+            }
 
             $result = $this->dao->get();
             if( !$result ) {
                 return array();
             }
 
-            return $result->result();
+            if ($id === '') {
+                return $result->result();
+            } else {
+                return $result->row();
+            }
+        }
+
+        public function getUserMessageRooms()
+        {
+            return $this->_getUserMessageRooms('');
         }
 
         public function getUserMessageRoomsByItemId($itemId)
         {
-            $this->dao->select();
-            $this->dao->from(DB_TABLE_PREFIX . 't_message_room');
-            $this->dao->join(DB_TABLE_PREFIX . 't_item', 'fk_i_item_id = pk_i_id' , 'INNER');
-            $this->dao->where('fk_i_item_id', $itemId);
-            $this->dao->Where('fk_i_user_id', osc_logged_user_id());
-
-            $result = $this->dao->get();
-            if( !$result ) {
-                return array();
-            }
-
-            return $result->result();
+            return $this->_getUserMessageRooms('', $itemId);
         }
 
         public function getMessageRoomById($id)
         {
-            $this->dao->select();
-            $this->dao->from(DB_TABLE_PREFIX . 't_message_room');
-            $this->dao->where('pk_i_message_room_id', $id);
-
-            $result = $this->dao->get();
-            if( !$result ) {
-                return array();
-            }
-
-            return $result->row();
+            return $this->_getUserMessageRooms($id);
         }
 
         public function createUserMessageRoom($itemId)
@@ -162,6 +163,15 @@
         public function getMessagesSinceLastMessageId($messageRoomId, $lastMessageId)
         {
             return $this->_getMessages($messageRoomId, $lastMessageId);
+        }
+
+        public function insertMessageOffer($aMessageOffer)
+        {
+            $success = $this->dao->insert(DB_TABLE_PREFIX . 't_message_offer', $aMessageOffer);
+            if ($success) {
+                return $this->dao->insertedId();
+            }
+            return 0;
         }
     }
 

@@ -29,6 +29,15 @@
     padding: 8px;
     border-radius: 4px;
     background-color: rgb(228, 228, 228);
+    cursor: pointer;
+  }
+
+  .offer-status {
+    color: rgb(128, 128, 128);
+  }
+
+  .last-message {
+    margin: 8px 0;
   }
 </style>
 
@@ -42,20 +51,43 @@
       }
     ?>
 
+    <?php
+      if (count($message_rooms) === 0) {
+    ?>
+    You do not have any message.
+    <?php
+      }
+    ?>
+
 <?php
   foreach ($message_rooms as $key => $message_room) {
 ?>
-  <div class="message-room">
-    <div><?php
-      if (intval(Params::getParam('item_id')) <= 0) {
-        echo "Item ID: ".$message_room['fk_i_item_id'].", ";
-      }
-    ?>Message Room ID: <?php echo $message_room['pk_i_message_room_id'] ?>, Buyer ID: <?php echo $message_room['fk_i_buyer_id'] ?></div>
-    <div><a href="<?php echo osc_route_url('private-message', array('message_room_id' => $message_room['pk_i_message_room_id'])); ?>">View Chat</a></div>
+  <div class="message-room" data-url="<?php echo osc_route_url('private-message', array('message_room_id' => $message_room['pk_i_message_room_id'])); ?>">
+    <div>
+      
+    </div>
+    <div>
+      <div class="title">
+        <strong><?php echo $message_room['s_title'] ?></strong>
+      </div>
+      <div class="last-message">
+        <?php echo $message_room['s_content'] ?><br />
+      </div>
+      <div class="offer-status">
+        <small><?php
+          if ($message_room['e_offer_status'] === 'none') {
+            echo 'heve not made an offer on this item yet';
+          }
+        ?></small>
+      </div>
+    </div>
   </div>
 <?php
   }
 ?>
 
 <script>
+  $(".message-room").click(function() {
+    document.location = this.dataset.url;
+  });
 </script>
