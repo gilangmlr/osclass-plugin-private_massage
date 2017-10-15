@@ -46,7 +46,7 @@
       <input type="hidden" name="itemId" value="<?php echo osc_item_id() ?>">
       <input type="hidden" name="mode" value="start">
       <div style="margin: 8px; padding: 8px; float: left; width: 36%; border: 1px solid rgb(234, 234, 234);">
-        <input id="offerPrice" type="number" value="<?php echo (osc_item_price()/1000000) ?>"> <button id="offerButton">Make offer</button>
+        <input id="offerPrice" name="price" type="number" value="<?php echo (osc_item_price()/1000000) ?>"> <button id="offerButton">Make offer</button>
       </div>
     <div style="clear: both;"></div>
   </form>
