@@ -22,12 +22,12 @@ CREATE TABLE IF NOT EXISTS /*TABLE_PREFIX*/t_message (
 ) ENGINE=InnoDB DEFAULT CHARACTER SET 'UTF8' COLLATE 'UTF8_GENERAL_CI';
 
 CREATE TABLE IF NOT EXISTS /*TABLE_PREFIX*/t_message_offer (
-    pfk_i_message_id INT UNSIGNED NOT NULL,
+    pfk_i_message_offer_id INT UNSIGNED NOT NULL,
     i_offered_price BIGINT(20) NOT NULL,
     fk_c_code CHAR(3) NOT NULL,
 
-    PRIMARY KEY (pfk_i_message_id),
-    FOREIGN KEY (pfk_i_message_id) REFERENCES /*TABLE_PREFIX*/t_message (pk_i_message_id),
+    PRIMARY KEY (pfk_i_message_offer_id),
+    FOREIGN KEY (pfk_i_message_offer_id) REFERENCES /*TABLE_PREFIX*/t_message (pk_i_message_id),
     FOREIGN KEY (fk_c_code) REFERENCES /*TABLE_PREFIX*/t_currency (pk_c_code)
 ) ENGINE=InnoDB DEFAULT CHARACTER SET 'UTF8' COLLATE 'UTF8_GENERAL_CI';
 
@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS /*TABLE_PREFIX*/t_message_room_status (
     PRIMARY KEY (pfk_i_message_room_id),
     FOREIGN KEY (pfk_i_message_room_id) REFERENCES /*TABLE_PREFIX*/t_message_room (pk_i_message_room_id),
     FOREIGN KEY (fk_i_last_message_id) REFERENCES /*TABLE_PREFIX*/t_message (pk_i_message_id),
-    FOREIGN KEY (fk_i_message_offer_id) REFERENCES /*TABLE_PREFIX*/t_message_offer (pfk_i_message_id)
+    FOREIGN KEY (fk_i_message_offer_id) REFERENCES /*TABLE_PREFIX*/t_message_offer (pfk_i_message_offer_id)
 ) ENGINE=InnoDB DEFAULT CHARACTER SET 'UTF8' COLLATE 'UTF8_GENERAL_CI';
 
 DELIMITER |
@@ -64,9 +64,9 @@ CREATE TRIGGER IF NOT EXISTS update_last_message_id AFTER INSERT ON /*TABLE_PREF
 CREATE TRIGGER IF NOT EXISTS update_message_offer_id AFTER INSERT ON /*TABLE_PREFIX*/t_message_offer
   FOR EACH ROW
   BEGIN
-    UPDATE /*TABLE_PREFIX*/t_message_room_status SET e_offer_status = 'made'
+    UPDATE /*TABLE_PREFIX*/t_message_room_status SET e_offer_status = 'made', fk_i_message_offer_id = NEW.pfk_i_message_offer_id
         WHERE pfk_i_message_room_id IN
-            (SELECT fk_i_message_room_id FROM /*TABLE_PREFIX*/t_message WHERE pk_i_message_id = pfk_i_message_id);
+            (SELECT fk_i_message_room_id FROM /*TABLE_PREFIX*/t_message WHERE pk_i_message_id = NEW.pfk_i_message_offer_id);
   END;
 |
 

@@ -77,6 +77,13 @@
         <small><?php
           if ($message_room['e_offer_status'] === 'none') {
             echo 'heve not made an offer on this item yet';
+          } else if ($message_room['e_offer_status'] === 'made') {
+            $offered_price = osc_format_price((float) $message_room['i_offered_price'], $message_room['fk_c_code']);;
+            if (intval($message_room['fk_i_buyer_id']) === osc_logged_user_id()) {
+              echo 'You offered ' . $offered_price;
+            } else {
+              echo $message_room['s_username'] . ' offered ' . $offered_price;
+            }
           }
         ?></small>
       </div>

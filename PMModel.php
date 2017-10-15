@@ -40,21 +40,24 @@
 
         public function _getUserMessageRooms($id = '', $itemId = '')
         {
-            $this->dao->select();
-            $this->dao->from(DB_TABLE_PREFIX . 't_message_room');
-
             if ($id === '') {
-                $this->dao->join(DB_TABLE_PREFIX . 't_item AS i', 'fk_i_item_id = i.pk_i_id' , 'INNER');
-                $this->dao->join(DB_TABLE_PREFIX . 't_item_description AS id', 'id.fk_i_item_id = i.pk_i_id' , 'INNER');
-                $this->dao->join(DB_TABLE_PREFIX . 't_message_room_status', 'pk_i_message_room_id = pfk_i_message_room_id' , 'INNER');
-                $this->dao->join(DB_TABLE_PREFIX . 't_message', 'pk_i_message_id = fk_i_last_message_id' , 'INNER');
-                $this->dao->where('fk_i_user_id', osc_logged_user_id());
+                $this->dao->select('mr.*, u.s_username, id.s_title, mrs.*, m.s_content, m.dt_delivery_time, mo.*');
+                $this->dao->from(DB_TABLE_PREFIX . 't_message_room AS mr');
+                $this->dao->join(DB_TABLE_PREFIX . 't_item AS i', 'i.pk_i_id = mr.fk_i_item_id' , 'INNER');
+                $this->dao->join(DB_TABLE_PREFIX . 't_item_description AS id', 'id.fk_i_item_id = mr.fk_i_item_id' , 'INNER');
+                $this->dao->join(DB_TABLE_PREFIX . 't_user AS u', 'u.pk_i_id = mr.fk_i_buyer_id' , 'INNER');
+                $this->dao->join(DB_TABLE_PREFIX . 't_message_room_status AS mrs', 'mr.pk_i_message_room_id = mrs.pfk_i_message_room_id' , 'INNER');
+                $this->dao->join(DB_TABLE_PREFIX . 't_message AS m', 'm.pk_i_message_id = mrs.fk_i_last_message_id' , 'INNER');
+                $this->dao->join(DB_TABLE_PREFIX . 't_message_offer AS mo', 'mo.pfk_i_message_offer_id = mrs.fk_i_message_offer_id' , 'LEFT');
+                $this->dao->where('i.fk_i_user_id', osc_logged_user_id());
                 if ($itemId !== '') {
-                    $this->dao->where('fk_i_item_id', $itemId);
+                    $this->dao->where('mr.fk_i_item_id', $itemId);
                 } else {
-                    $this->dao->orWhere('fk_i_buyer_id', osc_logged_user_id());
+                    $this->dao->orWhere('mr.fk_i_buyer_id', osc_logged_user_id());
                 }
             } else {
+                $this->dao->select();
+                $this->dao->from(DB_TABLE_PREFIX . 't_message_room');
                 $this->dao->where('pk_i_message_room_id', $id);
             }
 
