@@ -41,7 +41,7 @@
         public function _getUserMessageRooms($id = '', $itemId = '')
         {
             if ($id === '') {
-                $this->dao->select('mr.*, u.s_username, id.s_title, mrs.*, m.s_content, m.dt_delivery_time, mo.*');
+                $this->dao->select('mr.*, u.s_name, id.s_title, mrs.*, m.s_content, m.dt_delivery_time, mo.*');
                 $this->dao->from(DB_TABLE_PREFIX . 't_message_room AS mr');
                 $this->dao->join(DB_TABLE_PREFIX . 't_item AS i', 'i.pk_i_id = mr.fk_i_item_id' , 'INNER');
                 $this->dao->join(DB_TABLE_PREFIX . 't_item_description AS id', 'id.fk_i_item_id = mr.fk_i_item_id' , 'INNER');

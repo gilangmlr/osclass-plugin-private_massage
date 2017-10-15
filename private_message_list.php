@@ -82,7 +82,7 @@
             if (intval($message_room['fk_i_buyer_id']) === osc_logged_user_id()) {
               echo 'You offered ' . $offered_price;
             } else {
-              echo $message_room['s_username'] . ' offered ' . $offered_price;
+              echo $message_room['s_name'] . ' offered ' . $offered_price;
             }
           }
         ?></small>
