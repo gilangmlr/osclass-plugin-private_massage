@@ -126,6 +126,16 @@
       <input id="offerPrice" type="number" value="<?php echo (osc_item_price()/1000000) ?>"> <button id="offerButton">Make offer</button>
     </div>
     <div style="clear: both;"></div>
+  <?php } else if ($message_room['e_offer_status'] === 'made') { ?>
+    <div style="margin: 8px; padding: 8px; float: left; width: 36%; border: 1px solid rgb(234, 234, 234);">
+      <div style="display: flex; justify-content: center; margin-bottom: 8px;">
+        <input style="text-align: center;" id="offerPrice" type="text" value="<?php echo osc_format_price((float) $message_room['i_offered_price'], $message_room['currency_description']); ?>" disabled>
+      </div>
+      <div style="display: flex; justify-content: center;">
+        <button style="margin-right: 8px" id="acceptButton">Accept</button> <button id="declineButton">Declice</button>
+      </div>
+    </div>
+    <div style="clear: both;"></div>
   <?php } ?>
 </div>
 

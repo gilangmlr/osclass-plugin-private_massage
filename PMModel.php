@@ -47,7 +47,7 @@
                 $this->dao->join(DB_TABLE_PREFIX . 't_item_description AS id', 'id.fk_i_item_id = mr.fk_i_item_id' , 'INNER');
                 $this->dao->join(DB_TABLE_PREFIX . 't_user AS u', 'u.pk_i_id = mr.fk_i_buyer_id' , 'INNER');
                 $this->dao->join(DB_TABLE_PREFIX . 't_message_room_status AS mrs', 'mr.pk_i_message_room_id = mrs.pfk_i_message_room_id' , 'INNER');
-                $this->dao->join(DB_TABLE_PREFIX . 't_message AS m', 'm.pk_i_message_id = mrs.fk_i_last_message_id' , 'INNER');
+                $this->dao->join(DB_TABLE_PREFIX . 't_message AS m', 'm.pk_i_message_id = mrs.fk_i_last_message_id' , 'LEFT');
                 $this->dao->join(DB_TABLE_PREFIX . 't_message_offer AS mo', 'mo.pfk_i_message_offer_id = mrs.fk_i_message_offer_id' , 'LEFT');
                 $this->dao->join(DB_TABLE_PREFIX . 't_currency AS c', 'c.pk_c_code = mo.fk_c_code' , 'INNER');
                 $this->dao->where('i.fk_i_user_id', osc_logged_user_id());
@@ -58,7 +58,9 @@
                 }
             } else {
                 $this->dao->select();
-                $this->dao->from(DB_TABLE_PREFIX . 't_message_room');
+                $this->dao->from(DB_TABLE_PREFIX . 't_message_room AS mr');
+                $this->dao->join(DB_TABLE_PREFIX . 't_message_room_status AS mrs', 'mr.pk_i_message_room_id = mrs.pfk_i_message_room_id' , 'INNER');
+                $this->dao->join(DB_TABLE_PREFIX . 't_message_offer AS mo', 'mo.pfk_i_message_offer_id = mrs.fk_i_message_offer_id' , 'LEFT');
                 $this->dao->where('pk_i_message_room_id', $id);
             }
 

@@ -39,6 +39,15 @@
   .last-message {
     margin: 8px 0;
   }
+
+  .made {
+    display: inline-block;
+    background-color: rgb(53, 195, 217);
+    margin: 4px 8px;
+    padding: 2px 4px;
+    color: white;
+    border-radius: 4px;
+  }
 </style>
 
     <?php
@@ -70,9 +79,15 @@
       <div class="title">
         <strong><?php echo $message_room['s_title'] ?></strong>
       </div>
-      <div class="last-message">
-        <?php echo $message_room['s_content'] ?><br />
-      </div>
+      <?php
+        if ($message_room['s_content'] !== NULL) {
+      ?>
+        <div class="last-message">
+          <?php echo $message_room['s_content'] ?><br />
+        </div>
+      <?php 
+        } 
+      ?>
       <div class="offer-status">
         <small><?php
           if (intval($message_room['fk_i_buyer_id']) === osc_logged_user_id()) {
@@ -80,15 +95,18 @@
           } else {
             $name = $message_room['s_name'];
           }
-          if ($message_room['e_offer_status'] === 'none') {
-            echo "$name have not made an offer on this item yet";
-          } else if ($message_room['e_offer_status'] === 'made') {
-            $offered_price = osc_format_price((float) $message_room['i_offered_price'], $message_room['currency_description']);;
+          if ($message_room['e_offer_status'] !== 'none') {
+            if ($message_room['e_offer_status'] === 'made') {
+              echo '<span class="made">Offer made</span>';  
+            }
+            $offered_price = osc_format_price((float) $message_room['i_offered_price'], $message_room['currency_description']);
             if (intval($message_room['fk_i_buyer_id']) === osc_logged_user_id()) {
               echo "$name offered $offered_price";
             } else {
               echo "$name offered $offered_price";
             }
+          } else {
+            echo "$name have not made an offer on this item yet";
           }
         ?></small>
       </div>
