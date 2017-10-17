@@ -75,14 +75,19 @@
       </div>
       <div class="offer-status">
         <small><?php
+          if (intval($message_room['fk_i_buyer_id']) === osc_logged_user_id()) {
+            $name = 'You';
+          } else {
+            $name = $message_room['s_name'];
+          }
           if ($message_room['e_offer_status'] === 'none') {
-            echo 'heve not made an offer on this item yet';
+            echo "$name have not made an offer on this item yet";
           } else if ($message_room['e_offer_status'] === 'made') {
-            $offered_price = osc_format_price((float) $message_room['i_offered_price'], $message_room['fk_c_code']);;
+            $offered_price = osc_format_price((float) $message_room['i_offered_price'], $message_room['currency_description']);;
             if (intval($message_room['fk_i_buyer_id']) === osc_logged_user_id()) {
-              echo 'You offered ' . $offered_price;
+              echo "$name offered $offered_price";
             } else {
-              echo $message_room['s_name'] . ' offered ' . $offered_price;
+              echo "$name offered $offered_price";
             }
           }
         ?></small>

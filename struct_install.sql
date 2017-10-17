@@ -56,8 +56,10 @@ CREATE TRIGGER insert_message_room_id AFTER INSERT ON /*TABLE_PREFIX*/t_message_
 CREATE TRIGGER update_last_message_id AFTER INSERT ON /*TABLE_PREFIX*/t_message
   FOR EACH ROW
   BEGIN
-    UPDATE /*TABLE_PREFIX*/t_message_room_status SET fk_i_last_message_id = NEW.pk_i_message_id
-        WHERE pfk_i_message_room_id = NEW.fk_i_message_room_id;
+    IF (NEW.s_content NOT LIKE '%Offered%') THEN
+        UPDATE /*TABLE_PREFIX*/t_message_room_status SET fk_i_last_message_id = NEW.pk_i_message_id
+            WHERE pfk_i_message_room_id = NEW.fk_i_message_room_id;
+    END IF;
   END;
 |
 
