@@ -40,13 +40,24 @@
     margin: 8px 0;
   }
 
-  .made {
+  .offer-status-box {
     display: inline-block;
-    background-color: rgb(53, 195, 217);
     margin: 4px 8px;
     padding: 2px 4px;
     color: white;
     border-radius: 4px;
+  }
+
+  .made {
+    background-color: rgb(53, 195, 217);
+  }
+
+  .accepted {
+    background-color: rgb(120, 192, 66);
+  }
+
+  .declined {
+    background-color: rgb(206, 61, 39);
   }
 </style>
 
@@ -97,7 +108,13 @@
           }
           if ($message_room['e_offer_status'] !== 'none') {
             if ($message_room['e_offer_status'] === 'made') {
-              echo '<span class="made">Offer made</span>';  
+              echo '<span class="offer-status-box made">Offer made</span>';  
+            }
+            if ($message_room['e_offer_status'] === 'accepted') {
+              echo '<span class="offer-status-box accepted">Accepted</span>';  
+            }
+            if ($message_room['e_offer_status'] === 'declined') {
+              echo '<span class="offer-status-box declined">Declined</span>';  
             }
             $offered_price = osc_format_price((float) $message_room['i_offered_price'], $message_room['currency_description']);
             if (intval($message_room['fk_i_buyer_id']) === osc_logged_user_id()) {

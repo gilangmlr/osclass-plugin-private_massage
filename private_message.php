@@ -129,7 +129,8 @@
   <?php } else if ($message_room['e_offer_status'] === 'made') { ?>
     <div style="margin: 8px; padding: 8px; float: left; width: 36%; border: 1px solid rgb(234, 234, 234);">
       <div style="display: flex; justify-content: center; margin-bottom: 8px;">
-        <input style="text-align: center;" id="offerPrice" type="text" value="<?php echo osc_format_price((float) $message_room['i_offered_price'], $message_room['currency_description']); ?>" disabled>
+        <input id="offerPrice" type="hidden" value="<?php echo $message_room['i_offered_price'] / 1000000; ?>">
+        <input style="text-align: center;" type="text" value="<?php echo osc_format_price((float) $message_room['i_offered_price'], $message_room['currency_description']); ?>" disabled>
       </div>
       <div style="display: flex; justify-content: center;">
         <button style="margin-right: 8px" id="acceptButton">Accept</button> <button id="declineButton">Declice</button>
@@ -148,6 +149,10 @@
   var pollTimeout = 5000;
   var waitingTrial = 0;
 
+  var messageRoomId = $("#messageRoomId").val();
+  var senderId = $("#senderId").val();
+  var itemId = $("#itemId").val();
+
   $().ready(function () {
     pollServer();
   });
@@ -162,8 +167,8 @@
           type: "POST",
           dataType: "json",
           data: {
-            messageRoomId: $('#formMessage input[name=messageRoomId]').val(),
-            senderId: $('#formMessage input[name=senderId]').val(),
+            messageRoomId: messageRoomId,
+            senderId: senderId,
             content: '',
             mode: 'poll',
             lastMessageId: $(".message-container:last-child").attr('id')
@@ -262,22 +267,38 @@
     $('#formImage').submit();
   });
 
-  $('#offerButton').click(function() {
-    var price = $('#offerPrice').val();
-    var content = "/offer";
-    var messageRoomId = $("#messageRoomId").val();
-    var senderId = $("#senderId").val();
-    var itemId = $("#itemId").val();
+  var data = {
+    messageRoomId: messageRoomId,
+    senderId: senderId,
+    itemId: itemId
+  }
 
-    var data = {
-      price: price,
-      content: content,
-      messageRoomId: messageRoomId,
-      senderId: senderId,
-      itemId: itemId
-    }
-    sendMessage(data);
-  });
+  <?php if (osc_item_user_id() !== osc_logged_user_id()) { ?>
+    $('#offerButton').click(function() {
+      data.content = "/offer";
+      data.price = $('#offerPrice').val();
+
+      sendMessage(data);
+    });
+  <?php } else if ($message_room['e_offer_status'] === 'made') { ?>
+    $('#acceptButton').click(function() {
+      data.content = "/accept";
+      data.price = $('#offerPrice').val();
+
+      sendMessage(data);
+    });
+
+    $('#declineButton').click(function() {
+      data.content = "/decline";
+      data.price = $('#offerPrice').val();
+
+      sendMessage(data);
+    });
+  <?php } ?>
 </script>
 <script src="https://rawgit.com/jackmoore/autosize/master/dist/autosize.min.js"></script>
-<script>autosize($('#messageBox'))</script>
+<script>
+  $(function() {
+    autosize($('#messageBox'));
+  });
+</script>

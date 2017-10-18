@@ -148,7 +148,7 @@
         {
             $this->dao->select();
             $this->dao->from(DB_TABLE_PREFIX . 't_message');
-            $this->dao->Where('fk_i_message_room_id', $messageRoomId);
+            $this->dao->where('fk_i_message_room_id', $messageRoomId);
             $this->dao->where('pk_i_message_id >', $lastMessageId);
             $this->dao->orderBy('dt_delivery_time');
 
@@ -178,6 +178,14 @@
                 return $this->dao->insertedId();
             }
             return 0;
+        }
+
+        public function acceptOffer($messageRoomId)
+        {
+            $this->dao->from(DB_TABLE_PREFIX . 't_message_room_status');
+            $this->dao->set(['e_offer_status' => 'accepted']);
+            $this->dao->where('pfk_i_message_room_id', $messageRoomId);
+            return $this->dao->update();
         }
     }
 

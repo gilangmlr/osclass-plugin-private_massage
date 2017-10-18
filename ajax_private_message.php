@@ -34,7 +34,7 @@
     }
 
     if ($mode === 'poll') {
-        $messages = PMModel::newInstance()->getMessagesSinceLastMessageId(intval(Params::getParam('messageRoomId')), intval(Params::getParam('lastMessageId')));
+        $messages = PMModel::newInstance()->getMessagesSinceLastMessageId($message_room_id, intval(Params::getParam('lastMessageId')));
         echo json_encode($messages, JSON_UNESCAPED_SLASHES);
         exit();
     }
@@ -57,7 +57,7 @@
         $content = "Offered " . (string) osc_format_price( ((float) Params::getParam('price')) * 1000000 );
 
         $message_id = PMModel::newInstance()->insertMessage(['fk_i_message_room_id' => $message_room_id,
-        'fk_i_sender_id' => intval(Params::getParam('senderId')), 's_content' => $content, 's_image' => $uuid4]);
+        'fk_i_sender_id' => osc_logged_user_id(), 's_content' => $content, 's_image' => $uuid4]);
         $message = PMModel::newInstance()->getMessageById($message_id);
 
         PMModel::newInstance()->insertMessageOffer(['pfk_i_message_offer_id' => $message_id,
@@ -72,8 +72,25 @@
         exit();
     }
 
+    if ($content === "/accept") {
+        if (osc_item_user_id() !== osc_logged_user_id()) {
+            echo json_encode(["error" => "You can not accept an offer to other people's item."]);
+            exit();
+        }
+        PMModel::newInstance()->acceptOffer($message_room_id);
+
+        $content = "Accepted " . (string) osc_format_price( ((float) Params::getParam('price')) * 1000000 );
+
+        $message_id = PMModel::newInstance()->insertMessage(['fk_i_message_room_id' => $message_room_id,
+        'fk_i_sender_id' => osc_logged_user_id(), 's_content' => $content, 's_image' => $uuid4]);
+        $message = PMModel::newInstance()->getMessageById($message_id);
+
+        echo json_encode($message, JSON_UNESCAPED_SLASHES);
+        exit();
+    }
+
     $message_id = PMModel::newInstance()->insertMessage(['fk_i_message_room_id' => $message_room_id,
-        'fk_i_sender_id' => intval(Params::getParam('senderId')), 's_content' => $content, 's_image' => $uuid4]);
+        'fk_i_sender_id' => osc_logged_user_id(), 's_content' => $content, 's_image' => $uuid4]);
 
     $message =PMModel::newInstance()->getMessageById($message_id);
 
