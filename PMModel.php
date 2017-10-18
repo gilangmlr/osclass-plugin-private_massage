@@ -41,20 +41,21 @@
         public function _getUserMessageRooms($id = '', $itemId = '')
         {
             if ($id === '') {
-                $this->dao->select('mr.*, u.s_name, id.s_title, mrs.*, m.s_content, m.dt_delivery_time, mo.*, c.s_description AS currency_description');
+                $this->dao->select('mr.*, u.s_name, id.s_title, mrs.*, m.s_content, m.dt_delivery_time, mo.*, c.s_description AS currency_description, mis.*');
                 $this->dao->from(DB_TABLE_PREFIX . 't_message_room AS mr');
                 $this->dao->join(DB_TABLE_PREFIX . 't_item AS i', 'i.pk_i_id = mr.fk_i_item_id' , 'INNER');
                 $this->dao->join(DB_TABLE_PREFIX . 't_item_description AS id', 'id.fk_i_item_id = mr.fk_i_item_id' , 'INNER');
+                $this->dao->join(DB_TABLE_PREFIX . 't_message_item_status AS mis', 'mis.pfk_i_item_id = mr.fk_i_item_id' , 'INNER');
                 $this->dao->join(DB_TABLE_PREFIX . 't_user AS u', 'u.pk_i_id = mr.fk_i_buyer_id' , 'INNER');
                 $this->dao->join(DB_TABLE_PREFIX . 't_message_room_status AS mrs', 'mr.pk_i_message_room_id = mrs.pfk_i_message_room_id' , 'INNER');
                 $this->dao->join(DB_TABLE_PREFIX . 't_message AS m', 'm.pk_i_message_id = mrs.fk_i_last_message_id' , 'LEFT');
                 $this->dao->join(DB_TABLE_PREFIX . 't_message_offer AS mo', 'mo.pfk_i_message_offer_id = mrs.fk_i_message_offer_id' , 'LEFT');
                 $this->dao->join(DB_TABLE_PREFIX . 't_currency AS c', 'c.pk_c_code = mo.fk_c_code' , 'INNER');
-                $this->dao->where('i.fk_i_user_id', osc_logged_user_id());
+                $this->dao->where('mr.fk_i_buyer_id', osc_logged_user_id());
                 if ($itemId !== '') {
                     $this->dao->where('mr.fk_i_item_id', $itemId);
                 } else {
-                    $this->dao->orWhere('mr.fk_i_buyer_id', osc_logged_user_id());
+                    $this->dao->orWhere('i.fk_i_user_id', osc_logged_user_id());
                 }
             } else {
                 $this->dao->select();
@@ -84,6 +85,26 @@
         public function getUserMessageRoomsByItemId($itemId)
         {
             return $this->_getUserMessageRooms('', $itemId);
+        }
+
+        public function getUserMessageRoomByItemId($itemId)
+        {
+            $results = $this->_getUserMessageRooms('', $itemId);
+
+            if (count($results) > 0) {
+                return $results[0];
+            } else {
+                $this->dao->select();
+                $this->dao->from(DB_TABLE_PREFIX . 't_message_item_status');
+                $this->dao->where('pfk_i_item_id', $itemId);
+
+                $result = $this->dao->get();
+                if( !$result ) {
+                    return array();
+                }
+
+                return $result->row();
+            }
         }
 
         public function getMessageRoomById($id)
