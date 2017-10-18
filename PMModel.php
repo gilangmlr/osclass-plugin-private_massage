@@ -180,12 +180,22 @@
             return 0;
         }
 
-        public function acceptOffer($messageRoomId)
+        public function _statusOffer($messageRoomId, $status)
         {
             $this->dao->from(DB_TABLE_PREFIX . 't_message_room_status');
-            $this->dao->set(['e_offer_status' => 'accepted']);
+            $this->dao->set(['e_offer_status' => $status]);
             $this->dao->where('pfk_i_message_room_id', $messageRoomId);
             return $this->dao->update();
+        }        
+
+        public function acceptOffer($messageRoomId)
+        {
+            return $this->_statusOffer($messageRoomId, 'accepted');
+        }
+
+        public function declineOffer($messageRoomId)
+        {
+            return $this->_statusOffer($messageRoomId, 'declined');
         }
     }
 

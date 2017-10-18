@@ -89,6 +89,23 @@
         exit();
     }
 
+    if ($content === "/decline") {
+        if (osc_item_user_id() !== osc_logged_user_id()) {
+            echo json_encode(["error" => "You can not decline an offer to other people's item."]);
+            exit();
+        }
+        PMModel::newInstance()->declineOffer($message_room_id);
+
+        $content = "Declined " . (string) osc_format_price( ((float) Params::getParam('price')) * 1000000 );
+
+        $message_id = PMModel::newInstance()->insertMessage(['fk_i_message_room_id' => $message_room_id,
+        'fk_i_sender_id' => osc_logged_user_id(), 's_content' => $content, 's_image' => $uuid4]);
+        $message = PMModel::newInstance()->getMessageById($message_id);
+
+        echo json_encode($message, JSON_UNESCAPED_SLASHES);
+        exit();
+    }
+
     $message_id = PMModel::newInstance()->insertMessage(['fk_i_message_room_id' => $message_room_id,
         'fk_i_sender_id' => osc_logged_user_id(), 's_content' => $content, 's_image' => $uuid4]);
 
