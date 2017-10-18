@@ -52,7 +52,17 @@
       <?php
       } else {
       ?>
-        content += '<button style="background-color: grey;" disabled><?php echo $item_status; ?></button>';
+        <?php
+        if (intval($message_room['fk_i_status_to_id']) === osc_logged_user_id()) {
+        ?>
+          var redirectLocation = '<?php echo $redirectUrl; ?>';
+          content += '<button id="chatWithSeller" onClick="window.location.href='+"'"+redirectLocation+"'"+'"><?php echo $item_status; ?> to You - View Chat</button>';
+        <?php
+        } else {
+        ?>
+        <?php
+        }
+        ?>
       <?php
       }
       ?>

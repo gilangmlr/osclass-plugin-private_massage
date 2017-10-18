@@ -24,7 +24,9 @@
             $sql = file_get_contents($path);
 
             if(! $this->dao->importSQL($sql) ){
-                throw new Exception( "Error importSQL::PMModel<br>".$file );
+                $errorLevel = $this->dao->getErrorLevel();
+                $errorDesc = $this->dao->getErrorDesc();
+                throw new Exception( "Error importSQL::PMModel<br>".$file . ", errorLevel: $errorLevel, errorDesc: $errorDesc");
             }
         }
 
@@ -51,15 +53,17 @@
                 $this->dao->join(DB_TABLE_PREFIX . 't_message AS m', 'm.pk_i_message_id = mrs.fk_i_last_message_id' , 'LEFT');
                 $this->dao->join(DB_TABLE_PREFIX . 't_message_offer AS mo', 'mo.pfk_i_message_offer_id = mrs.fk_i_message_offer_id' , 'LEFT');
                 $this->dao->join(DB_TABLE_PREFIX . 't_currency AS c', 'c.pk_c_code = mo.fk_c_code' , 'INNER');
-                $this->dao->where('mr.fk_i_buyer_id', osc_logged_user_id());
                 if ($itemId !== '') {
-                    $this->dao->where('mr.fk_i_item_id', $itemId);
+                    $osc_logged_user_id = osc_logged_user_id();
+                    $this->dao->where("mr.fk_i_item_id = $itemId AND (i.fk_i_user_id = $osc_logged_user_id OR mr.fk_i_buyer_id = $osc_logged_user_id)");
                 } else {
+                    $this->dao->where('mr.fk_i_buyer_id', osc_logged_user_id());
                     $this->dao->orWhere('i.fk_i_user_id', osc_logged_user_id());
                 }
             } else {
                 $this->dao->select();
                 $this->dao->from(DB_TABLE_PREFIX . 't_message_room AS mr');
+                $this->dao->join(DB_TABLE_PREFIX . 't_message_item_status AS mis', 'mis.pfk_i_item_id = mr.fk_i_item_id' , 'INNER');
                 $this->dao->join(DB_TABLE_PREFIX . 't_message_room_status AS mrs', 'mr.pk_i_message_room_id = mrs.pfk_i_message_room_id' , 'INNER');
                 $this->dao->join(DB_TABLE_PREFIX . 't_message_offer AS mo', 'mo.pfk_i_message_offer_id = mrs.fk_i_message_offer_id' , 'LEFT');
                 $this->dao->where('pk_i_message_room_id', $id);

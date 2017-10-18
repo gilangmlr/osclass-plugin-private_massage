@@ -132,7 +132,7 @@
         <input id="offerPrice" type="hidden" value="<?php echo $message_room['i_offered_price'] / 1000000; ?>">
         <input style="text-align: center;" type="text" value="<?php echo osc_format_price((float) $message_room['i_offered_price'], $message_room['currency_description']); ?>" disabled>
       </div>
-      <div style="display: flex; justify-content: center;">
+      <div id="offerActionButtons" style="display: flex; justify-content: center;">
         <button style="margin-right: 8px" id="acceptButton">Accept</button> <button id="declineButton">Declice</button>
       </div>
     </div>
@@ -187,6 +187,9 @@
                 className = 'mine';
               }
               appendMessage(message, className);
+              if (message['s_content'].indexOf('Offered') !== -1) {
+                $('#offerActionButtons').show();
+              }
             }
             if (newMessage) {
               waitingTrial = 0;
@@ -286,6 +289,8 @@
       data.price = $('#offerPrice').val();
 
       sendMessage(data);
+
+      $('#offerActionButtons').hide();
     });
 
     $('#declineButton').click(function() {
@@ -293,6 +298,8 @@
       data.price = $('#offerPrice').val();
 
       sendMessage(data);
+
+      $('#offerActionButtons').hide();
     });
   <?php } ?>
 </script>
