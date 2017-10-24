@@ -32,6 +32,7 @@
 
         public function install()
         {
+            $this->uninstall();
             $this->import('private_message/struct_install.sql');
         }
 
@@ -45,14 +46,14 @@
             if ($id === '') {
                 $this->dao->select('mr.*, u.s_name, id.s_title, mrs.*, m.s_content, m.dt_delivery_time, mo.*, c.s_description AS currency_description, mis.*');
                 $this->dao->from(DB_TABLE_PREFIX . 't_message_room AS mr');
-                $this->dao->join(DB_TABLE_PREFIX . 't_item AS i', 'i.pk_i_id = mr.fk_i_item_id' , 'INNER');
-                $this->dao->join(DB_TABLE_PREFIX . 't_item_description AS id', 'id.fk_i_item_id = mr.fk_i_item_id' , 'INNER');
-                $this->dao->join(DB_TABLE_PREFIX . 't_message_item_status AS mis', 'mis.pfk_i_item_id = mr.fk_i_item_id' , 'INNER');
-                $this->dao->join(DB_TABLE_PREFIX . 't_user AS u', 'u.pk_i_id = mr.fk_i_buyer_id' , 'INNER');
-                $this->dao->join(DB_TABLE_PREFIX . 't_message_room_status AS mrs', 'mr.pk_i_message_room_id = mrs.pfk_i_message_room_id' , 'INNER');
+                $this->dao->join(DB_TABLE_PREFIX . 't_item AS i', 'i.pk_i_id = mr.fk_i_item_id' , 'LEFT');
+                $this->dao->join(DB_TABLE_PREFIX . 't_item_description AS id', 'id.fk_i_item_id = mr.fk_i_item_id' , 'LEFT');
+                $this->dao->join(DB_TABLE_PREFIX . 't_message_item_status AS mis', 'mis.pfk_i_item_id = mr.fk_i_item_id' , 'LEFT');
+                $this->dao->join(DB_TABLE_PREFIX . 't_user AS u', 'u.pk_i_id = mr.fk_i_buyer_id' , 'LEFT');
+                $this->dao->join(DB_TABLE_PREFIX . 't_message_room_status AS mrs', 'mr.pk_i_message_room_id = mrs.pfk_i_message_room_id' , 'LEFT');
                 $this->dao->join(DB_TABLE_PREFIX . 't_message AS m', 'm.pk_i_message_id = mrs.fk_i_last_message_id' , 'LEFT');
                 $this->dao->join(DB_TABLE_PREFIX . 't_message_offer AS mo', 'mo.pfk_i_message_offer_id = mrs.fk_i_message_offer_id' , 'LEFT');
-                $this->dao->join(DB_TABLE_PREFIX . 't_currency AS c', 'c.pk_c_code = mo.fk_c_code' , 'INNER');
+                $this->dao->join(DB_TABLE_PREFIX . 't_currency AS c', 'c.pk_c_code = mo.fk_c_code' , 'LEFT');
                 if ($itemId !== '') {
                     $osc_logged_user_id = osc_logged_user_id();
                     $this->dao->where("mr.fk_i_item_id = $itemId AND (i.fk_i_user_id = $osc_logged_user_id OR mr.fk_i_buyer_id = $osc_logged_user_id)");
@@ -63,8 +64,8 @@
             } else {
                 $this->dao->select();
                 $this->dao->from(DB_TABLE_PREFIX . 't_message_room AS mr');
-                $this->dao->join(DB_TABLE_PREFIX . 't_message_item_status AS mis', 'mis.pfk_i_item_id = mr.fk_i_item_id' , 'INNER');
-                $this->dao->join(DB_TABLE_PREFIX . 't_message_room_status AS mrs', 'mr.pk_i_message_room_id = mrs.pfk_i_message_room_id' , 'INNER');
+                $this->dao->join(DB_TABLE_PREFIX . 't_message_item_status AS mis', 'mis.pfk_i_item_id = mr.fk_i_item_id' , 'LEFT');
+                $this->dao->join(DB_TABLE_PREFIX . 't_message_room_status AS mrs', 'mr.pk_i_message_room_id = mrs.pfk_i_message_room_id' , 'LEFT');
                 $this->dao->join(DB_TABLE_PREFIX . 't_message_offer AS mo', 'mo.pfk_i_message_offer_id = mrs.fk_i_message_offer_id' , 'LEFT');
                 $this->dao->where('pk_i_message_room_id', $id);
             }
@@ -149,7 +150,8 @@
         {
             $success = $this->dao->insert(DB_TABLE_PREFIX . 't_message', $aMessage);
             if ($success) {
-                return $this->dao->insertedId();
+                $message_id = $this->dao->insertedId();
+                return $message_id;
             }
             return 0;
         }
@@ -165,7 +167,7 @@
                 return array();
             }
 
-            return $message = $result->row();
+            $message = $result->row();
             return $this->formatDatetime($message);
         }
 
@@ -182,8 +184,24 @@
                 return array();
             }
 
+            $this->_resetUnread($messageRoomId);
+
             $messages = $result->result();
             return array_map([$this, 'formatDatetime'], $messages);
+        }
+
+        public function _resetUnread($messageRoomId)
+        {
+            $this->setTableName('t_message_room_status');
+            $this->setFields(['i_seller_unread', 'i_buyer_unread', 'pfk_i_message_room_id']);
+
+            $message_room = $this->getMessageRoomById($messageRoomId);
+            $field = 'i_seller_unread';
+            if (intval($message_room['fk_i_buyer_id']) === osc_logged_user_id()) {
+                $field = 'i_buyer_unread';
+            }
+
+            return $this->update([$field => 0], ["pfk_i_message_room_id" => $messageRoomId]);
         }
 
         public function getAllMessages($messageRoomId)
@@ -207,10 +225,9 @@
 
         public function _statusOffer($messageRoomId, $status)
         {
-            $this->dao->from(DB_TABLE_PREFIX . 't_message_room_status');
-            $this->dao->set(['e_offer_status' => $status]);
-            $this->dao->where('pfk_i_message_room_id', $messageRoomId);
-            return $this->dao->update();
+            $this->setTableName('t_message_room_status');
+            $this->setFields(['e_offer_status', 'pfk_i_message_room_id']);
+            return $this->update(['e_offer_status' => $status], "pfk_i_message_room_id = $messageRoomId");
         }        
 
         public function acceptOffer($messageRoomId)

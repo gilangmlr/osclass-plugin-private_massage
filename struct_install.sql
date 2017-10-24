@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS /*TABLE_PREFIX*/t_message (
     s_content TEXT NOT NULL,
     s_image CHAR(36),
     dt_delivery_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    dt_read_time DATETIME,
 
     PRIMARY KEY (pk_i_message_id),
     FOREIGN KEY (fk_i_message_room_id) REFERENCES
@@ -35,7 +36,8 @@ CREATE TABLE IF NOT EXISTS /*TABLE_PREFIX*/t_message_offer (
 CREATE TABLE IF NOT EXISTS /*TABLE_PREFIX*/t_message_room_status (
     pfk_i_message_room_id INT UNSIGNED NOT NULL,
     fk_i_last_message_id INT UNSIGNED,
-    i_unread INT UNSIGNED,
+    i_buyer_unread INT UNSIGNED DEFAULT 0,
+    i_seller_unread INT UNSIGNED DEFAULT 0,
     e_offer_status ENUM('none', 'made', 'accepted', 'declined') NOT NULL DEFAULT 'none',
     fk_i_message_offer_id INT UNSIGNED,
 
@@ -70,10 +72,18 @@ CREATE TRIGGER insert_message_room_id AFTER INSERT ON /*TABLE_PREFIX*/t_message_
 CREATE TRIGGER update_mrs_last_message_id AFTER INSERT ON /*TABLE_PREFIX*/t_message
   FOR EACH ROW
   BEGIN
-    IF (NEW.s_content NOT LIKE '%Offered%' AND NEW.s_content LIKE '%Accepted%' AND NEW.s_content LIKE '%Declined%' ) THEN
+    DECLARE buyer_message VARCHAR(6) DEFAULT 'seller';
+    SELECT "buyer" INTO buyer_message FROM /*TABLE_PREFIX*/t_message_room WHERE pk_i_message_room_id = NEW.fk_i_message_room_id AND fk_i_buyer_id = NEW.fk_i_sender_id;
+    IF (buyer_message = 'buyer') THEN
+        UPDATE /*TABLE_PREFIX*/t_message_room_status SET i_seller_unread = i_seller_unread + 1 WHERE pfk_i_message_room_id = NEW.fk_i_message_room_id;
+    ELSE
+        UPDATE /*TABLE_PREFIX*/t_message_room_status SET i_buyer_unread = i_buyer_unread + 1 WHERE pfk_i_message_room_id = NEW.fk_i_message_room_id;
+    END IF;
+    
+    -- IF (NEW.s_content NOT LIKE '%Offered%' AND NEW.s_content LIKE '%Accepted%' AND NEW.s_content LIKE '%Declined%' ) THEN
         UPDATE /*TABLE_PREFIX*/t_message_room_status SET fk_i_last_message_id = NEW.pk_i_message_id
             WHERE pfk_i_message_room_id = NEW.fk_i_message_room_id;
-    END IF;
+    -- END IF;
   END;
 |
 
@@ -100,5 +110,3 @@ CREATE TRIGGER update_item_m_status AFTER UPDATE ON /*TABLE_PREFIX*/t_message_ro
     END IF;
   END;
 |
-
--- DELIMITER ;

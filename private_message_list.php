@@ -59,6 +59,10 @@
   .declined {
     background-color: rgb(206, 61, 39);
   }
+
+  .new {
+    background-color: rgb(200, 228, 228);
+  }
 </style>
 
     <?php
@@ -81,14 +85,23 @@
 
 <?php
   foreach ($message_rooms as $key => $message_room) {
+    $field = 'i_seller_unread';
+    if (intval($message_room['fk_i_buyer_id']) === osc_logged_user_id()) {
+        $field = 'i_buyer_unread';
+    }
+    $new = '';
+    if (intval($message_room[$field]) > 0) {
+      $new = 'new';
+    }
 ?>
-  <div class="message-room" data-url="<?php echo osc_route_url('private-message', array('message_room_id' => $message_room['pk_i_message_room_id'])); ?>">
-    <div>
-      
-    </div>
+  <div class="message-room <?php echo $new ?>" data-url="<?php echo osc_route_url('private-message', array('message_room_id' => $message_room['pk_i_message_room_id'])); ?>">
     <div>
       <div class="title">
-        <strong><?php echo $message_room['s_title'] ?></strong>
+        <strong><?php echo $message_room['s_title'] ?></strong> <?php
+          if ($new) {
+           echo '(' . $message_room[$field] . ')';
+          }
+         ?>
       </div>
       <?php
         if ($message_room['s_content'] !== NULL) {

@@ -154,7 +154,7 @@
   var itemId = $("#itemId").val();
 
   $().ready(function () {
-    pollServer();
+    // pollServer();
   });
 
   function pollServer()
