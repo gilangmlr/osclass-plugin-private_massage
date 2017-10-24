@@ -74,7 +74,37 @@
   ?>
   $('#contact').html(content);
 
-  <?php if( osc_users_enabled() && osc_is_web_user_logged_in() ) { ?>
-    $('#header .nav li:nth-child(1)').before($('<li style="margin-right: 16px;"><a href="<?php echo osc_route_url('private-message-list', array('item_id' => null)); ?>">Private Message</a></li>'));
+  <?php if( osc_users_enabled() && osc_is_web_user_logged_in() ) {
+    $unread = PMModel::newInstance()->getUnreadFromUserMessageRooms();
+    $new = '';
+    if ($unread > 0) {
+      $new = "($unread)";
+    }
+  ?>
+    $('#header .nav li:nth-child(1)').before($('<li id="privateMessageMenu" style="margin-right: 16px;"><a href="<?php echo osc_route_url('private-message-list', array('item_id' => null)); ?>">Private Message <?php echo $new?></a></li>'));
+    var ajax_url = "<?php echo osc_ajax_plugin_url('private_message/ajax_private_message.php') ?>";
+
+    function getUnread() {
+        $.ajax({
+          type: "POST",
+          url: ajax_url,
+          data: {mode: 'getUnread'},
+          dataType: 'json',
+          cache: false,
+
+          success: function(message) {
+            if (message['unread'] > 0) {
+              $('#privateMessageMenu a').html('Private Message (' + message['unread'] + ')');
+            } else {
+              $('#privateMessageMenu a').html('Private Message');
+            }
+            window.setTimeout(function() {
+              getUnread();
+            }, 5000);
+          }
+        });
+    }
+
+    getUnread();
   <?php } ?>
 </script>

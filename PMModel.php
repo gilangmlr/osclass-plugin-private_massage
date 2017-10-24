@@ -87,6 +87,22 @@
             return $this->_getUserMessageRooms('');
         }
 
+        public function getUnreadFromUserMessageRooms()
+        {
+            $message_rooms = $this->_getUserMessageRooms('');
+
+            $unread = 0;
+            foreach ($message_rooms as $key => $message_room) {
+                $field = 'i_seller_unread';
+                if (intval($message_room['fk_i_buyer_id']) === osc_logged_user_id()) {
+                    $field = 'i_buyer_unread';
+                }
+                $unread += intval($message_room[$field]);
+            }
+
+            return $unread;
+        }
+
         public function getUserMessageRoomsByItemId($itemId)
         {
             return $this->_getUserMessageRooms('', $itemId);

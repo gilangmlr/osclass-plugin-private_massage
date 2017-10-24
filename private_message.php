@@ -154,7 +154,7 @@
   var itemId = $("#itemId").val();
 
   $().ready(function () {
-    // pollServer();
+    pollServer();
   });
 
   function pollServer()
@@ -248,8 +248,6 @@
         $('#messagesBox').animate({
           scrollTop: $('#messagesBox').get(0).scrollHeight
         }, 1000);
-        isActive = true;
-        pollServer();
       }
     });
   }
@@ -260,7 +258,6 @@
       $('#messageBox').val('');
       // return;
     }
-    isActive = false;
     sendMessage(new FormData(this), false, false);
   });
 
