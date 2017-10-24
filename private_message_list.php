@@ -150,4 +150,7 @@
   $(".message-room").click(function() {
     document.location = this.dataset.url;
   });
+  window.setTimeout(function() {
+    location.reload(true);
+  }, 30000);
 </script>
