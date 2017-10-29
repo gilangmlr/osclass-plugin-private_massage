@@ -109,9 +109,15 @@
             var ves = (message_room['name'] === 'You')? 've' : 's';
             offerStr += message_room['name'] + 'ha'+ves+' not made an offer on this item yet';
           }
+          var image_url = message["osc_resource_url"];
+          console.log(message_room);
+          var imgStr = (message_room['osc_resource_url'] !== "")? '<img style="float: right;" src="'+message_room['osc_resource_url']+'" width="77px" />' : "";
           var $message_room = $('\
             <div class="message-room'+newClassName+'" data-url="'+message_room['url']+'" onclick="document.location = this.dataset.url">\
-              <div>\
+              <div style="display: inline-block; width: 10%; vertical-align: top;">\
+                '+message_room['name']+'\
+              </div>\
+              <div style="display: inline-block; width: 78%;">\
                 <div class="title">\
                   <strong>'+message_room['s_title']+'</strong> '+unreadStr+'\
                 </div>\
@@ -124,14 +130,17 @@
                   </small>\
                 </div>\
               </div>\
+              <div style="display: inline-block; width: 10%; vertical-align: top;">\
+                '+imgStr+'\
+              </div>\
             </div>\
           ');
 
           $('#message-rooms').append($message_room);
         }
         window.setTimeout(function() {
-          getPMList();
-        }, 5000);
+          // getPMList();
+        }, 10000);
       }
     });
   }

@@ -58,13 +58,22 @@
             $message_room['url'] = osc_route_url('private-message', array('message_room_id' => $message_room['pk_i_message_room_id']));
             $message_room['formatted_price'] = osc_format_price((float) $message_room['i_offered_price'], $message_room['currency_description']);
 
+            $osc_resource_path = (string) osc_apply_filter('resource_path', osc_base_url().$message_room["ir_s_path"]);
+            $osc_resource_url = (string) $osc_resource_path.$message_room['ir_pk_i_id'].".".$message_room["ir_s_extension"];
+
+            $message_room['osc_resource_url'] = $osc_resource_url;
+
+            if (!isset($message_room['ir_s_path'])) {
+                $message_room['osc_resource_url'] = osc_current_web_theme_url('images/no_photo.gif');
+            }
+
             return $message_room;
         }
 
         public function _getUserMessageRooms($id = '', $itemId = '')
         {
             if ($id === '') {
-                $this->dao->select('mr.*, u.s_name, id.s_title, mrs.*, m.s_content, m.dt_delivery_time, mo.*, c.s_description AS currency_description, mis.*');
+                $this->dao->select('mr.*, u.s_name, id.s_title, mrs.*, m.s_content, m.dt_delivery_time, mo.*, c.s_description AS currency_description, mis.*, ir.pk_i_id AS ir_pk_i_id, ir.s_path AS ir_s_path, ir.s_extension AS ir_s_extension');
                 $this->dao->from(DB_TABLE_PREFIX . 't_message_room AS mr');
                 $this->dao->join(DB_TABLE_PREFIX . 't_item AS i', 'i.pk_i_id = mr.fk_i_item_id' , 'LEFT');
                 $this->dao->join(DB_TABLE_PREFIX . 't_item_description AS id', 'id.fk_i_item_id = mr.fk_i_item_id' , 'LEFT');
@@ -74,6 +83,7 @@
                 $this->dao->join(DB_TABLE_PREFIX . 't_message AS m', 'm.pk_i_message_id = mrs.fk_i_last_message_id' , 'LEFT');
                 $this->dao->join(DB_TABLE_PREFIX . 't_message_offer AS mo', 'mo.pfk_i_message_offer_id = mrs.fk_i_message_offer_id' , 'LEFT');
                 $this->dao->join(DB_TABLE_PREFIX . 't_currency AS c', 'c.pk_c_code = mo.fk_c_code' , 'LEFT');
+                $this->dao->join(DB_TABLE_PREFIX . 't_item_resource AS ir', 'ir.fk_i_item_id = i.pk_i_id' , 'LEFT');
                 if ($itemId !== '') {
                     $osc_logged_user_id = osc_logged_user_id();
                     $this->dao->where("mr.fk_i_item_id = $itemId AND (i.fk_i_user_id = $osc_logged_user_id OR mr.fk_i_buyer_id = $osc_logged_user_id)");
