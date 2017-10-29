@@ -97,7 +97,7 @@
       <input type="hidden" id="itemId" name="itemId" value="<?php echo osc_item_id() ?>">
       <div style="margin: 4px">
         <textarea id="messageBox" name="content" rows="2" style="width: 80%; resize: none"></textarea>
-        <input type="submit" id="sendMessageButton" value="Send">
+        <input type="submit" id="sendMessageButton" value="Send" disabled>
       </div>
       <div style="margin: 4px">
         <input id="inputImage" type="file" name="image" accept="image/*" />
@@ -141,7 +141,9 @@
 </div>
 
 <script>
-  $('#messagesBox').scrollTop($('#messagesBox').get(0).scrollHeight);
+  $(window).on("load", function() {
+    $('#messagesBox').scrollTop($('#messagesBox').get(0).scrollHeight);
+  });
   var isActive = true;
   var pollTimeout = 5000;
   var waitingTrial = 0;
@@ -241,6 +243,9 @@
           return;
         }
         appendMessage(message, 'mine');
+        if (!$("#sendMessageButton").prop('disabled') && $('#messageBox').val().trim() === "") {
+          $("#sendMessageButton").prop('disabled', true);
+        }
         $('#formMessage')[0].reset();
         $('#messagesBox').animate({
           scrollTop: $('#messagesBox').get(0).scrollHeight
@@ -249,19 +254,30 @@
     });
   }
 
+  $('#messageBox').keyup(function() {
+    if ($('#messageBox').val().trim() === "") {
+      $("#sendMessageButton").prop('disabled', true);
+    } else {
+      $("#sendMessageButton").prop('disabled', false);
+    }
+  });
+
+  $('#inputImage').change(function() {
+    if ($(this).val() !== "") {
+      $("#sendMessageButton").prop('disabled', false);
+    } else if ($('#messageBox').val() === "") {
+      $("#sendMessageButton").prop('disabled', true);
+    }
+  });
+
   $('#formMessage').submit(function(e) {
     e.preventDefault();
     if ($('#messageBox').val().trim() === "") {
       $('#messageBox').val('');
       // return;
     }
+    $("#sendMessageButton").prop('disabled', true);
     sendMessage(new FormData(this), false, false);
-  });
-
-  $('#formImage').attr('action', ajax_url);
-
-  $('#inputImage').change(function() {
-    $('#formImage').submit();
   });
 
   var data = {
