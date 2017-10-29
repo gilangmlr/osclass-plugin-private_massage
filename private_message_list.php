@@ -16,12 +16,6 @@
     _e("This is not your listing item!");
     return;
   }
-
-  if (intval(Params::getParam('item_id'))) {
-    $message_rooms = PMModel::newInstance()->getUserMessageRoomsByItemId(intval(Params::getParam('item_id')));
-  } else {
-    $message_rooms = PMModel::newInstance()->getUserMessageRooms();
-  }
 ?>
 <style>
   .message-room {
@@ -75,82 +69,72 @@
       }
     ?>
 
-    <?php
-      if (count($message_rooms) === 0) {
-    ?>
-    You do not have any message.
-    <?php
-      }
-    ?>
-
-<?php
-  foreach ($message_rooms as $key => $message_room) {
-    $field = 'i_seller_unread';
-    if (intval($message_room['fk_i_buyer_id']) === osc_logged_user_id()) {
-        $field = 'i_buyer_unread';
-    }
-    $new = '';
-    if (intval($message_room[$field]) > 0) {
-      $new = 'new';
-    }
-?>
-  <div class="message-room <?php echo $new ?>" data-url="<?php echo osc_route_url('private-message', array('message_room_id' => $message_room['pk_i_message_room_id'])); ?>">
-    <div>
-      <div class="title">
-        <strong><?php echo $message_room['s_title'] ?></strong> <?php
-          if ($new) {
-           echo '(' . $message_room[$field] . ')';
-          }
-         ?>
-      </div>
-      <?php
-        if ($message_room['s_content'] !== NULL) {
-      ?>
-        <div class="last-message">
-          <?php echo $message_room['s_content'] ?><br />
-        </div>
-      <?php 
-        } 
-      ?>
-      <div class="offer-status">
-        <small><?php
-          if (intval($message_room['fk_i_buyer_id']) === osc_logged_user_id()) {
-            $name = 'You';
-          } else {
-            $name = $message_room['s_name'];
-          }
-          if ($message_room['e_offer_status'] !== 'none') {
-            if ($message_room['e_offer_status'] === 'made') {
-              echo '<span class="offer-status-box made">Offer made</span>';  
-            }
-            if ($message_room['e_offer_status'] === 'accepted') {
-              echo '<span class="offer-status-box accepted">Accepted</span>';  
-            }
-            if ($message_room['e_offer_status'] === 'declined') {
-              echo '<span class="offer-status-box declined">Declined</span>';  
-            }
-            $offered_price = osc_format_price((float) $message_room['i_offered_price'], $message_room['currency_description']);
-            if (intval($message_room['fk_i_buyer_id']) === osc_logged_user_id()) {
-              echo "$name offered $offered_price";
-            } else {
-              echo "$name offered $offered_price";
-            }
-          } else {
-            echo "$name have not made an offer on this item yet";
-          }
-        ?></small>
-      </div>
-    </div>
-  </div>
-<?php
-  }
-?>
+<div id="message-rooms">
+  Fetching data...
+</div>
 
 <script>
-  $(".message-room").click(function() {
-    document.location = this.dataset.url;
-  });
-  window.setTimeout(function() {
-    location.reload(true);
-  }, 30000);
+  function getPMList() {
+    $.ajax({
+      type: "POST",
+      url: ajax_url,
+      data: {mode: 'getPMList'},
+      dataType: 'json',
+      cache: false,
+
+      success: function(message) {
+        if (message['message_rooms'].length > 0) {
+          $('#message-rooms').html('');
+        } else {
+          $('#message-rooms').html('You do not have any message.');
+        }
+        for (var key in message['message_rooms']) {
+          var message_room = message['message_rooms'][key];
+          var newClassName = (parseInt(message_room['unread']) > 0)? ' new' : '';
+          var unreadStr = (parseInt(message_room['unread']) > 0)? ' ('+message_room['unread']+')' : '';
+          var offerStr = '';
+          if (message_room['e_offer_status'] !== 'none') {
+            if (message_room['e_offer_status'] === 'made') {
+              offerStr += '<span class="offer-status-box made">Offer made</span>';  
+            }
+            if (message_room['e_offer_status'] === 'accepted') {
+              offerStr += '<span class="offer-status-box accepted">Accepted</span>';  
+            }
+            if (message_room['e_offer_status'] === 'declined') {
+              offerStr += '<span class="offer-status-box declined">Declined</span>';  
+            }
+
+            offerStr += message_room['name'] + ' offered ' + message_room['formatted_price'];
+          } else {
+            var ves = (message_room['name'] === 'You')? 've' : 's';
+            offerStr += message_room['name'] + 'ha'+ves+' not made an offer on this item yet';
+          }
+          var $message_room = $('\
+            <div class="message-room'+newClassName+'" data-url="'+message_room['url']+'" onclick="document.location = this.dataset.url">\
+              <div>\
+                <div class="title">\
+                  <strong>'+message_room['s_title']+'</strong> '+unreadStr+'\
+                </div>\
+                <div class="last-message">\
+                  '+message_room['s_content']+'<br />\
+                </div>\
+                <div class="offer-status">\
+                  <small>\
+                  '+offerStr+'\
+                  </small>\
+                </div>\
+              </div>\
+            </div>\
+          ');
+
+          $('#message-rooms').append($message_room);
+        }
+        window.setTimeout(function() {
+          getPMList();
+        }, 5000);
+      }
+    });
+  }
+
+  getPMList();
 </script>

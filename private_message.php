@@ -142,9 +142,6 @@
 
 <script>
   $('#messagesBox').scrollTop($('#messagesBox').get(0).scrollHeight);
-  var ajax_url = "<?php echo osc_ajax_plugin_url('private_message/ajax_private_message.php') ?>";
-  var upload_url = "<?php echo osc_base_url() . 'oc-content/uploads/private-message/'; ?>";
-  var osc_logged_user_id = "<?php echo osc_logged_user_id() ?>";
   var isActive = true;
   var pollTimeout = 5000;
   var waitingTrial = 0;
@@ -300,7 +297,7 @@
     });
   <?php } ?>
 </script>
-<script src="https://rawgit.com/jackmoore/autosize/master/dist/autosize.min.js"></script>
+<script src="<?php echo osc_ajax_plugin_url('private_message/autosize.min.js') ?>"></script>
 <script>
   $(function() {
     autosize($('#messageBox'));

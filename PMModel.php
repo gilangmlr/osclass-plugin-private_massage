@@ -41,6 +41,26 @@
             $this->import('private_message/struct_uninstall.sql');
         }
 
+        public function formatMessageRooms($message_room) {
+            $field = 'i_seller_unread';
+            if (intval($message_room['fk_i_buyer_id']) === osc_logged_user_id()) {
+                $field = 'i_buyer_unread';
+            }
+
+            $message_room['unread'] = $message_room[$field];
+
+            if (intval($message_room['fk_i_buyer_id']) === osc_logged_user_id()) {
+                $message_room['name'] = 'You';
+            } else {
+                $message_room['name'] = $message_room['s_name'];
+            }
+
+            $message_room['url'] = osc_route_url('private-message', array('message_room_id' => $message_room['pk_i_message_room_id']));
+            $message_room['formatted_price'] = osc_format_price((float) $message_room['i_offered_price'], $message_room['currency_description']);
+
+            return $message_room;
+        }
+
         public function _getUserMessageRooms($id = '', $itemId = '')
         {
             if ($id === '') {
@@ -76,7 +96,8 @@
             }
 
             if ($id === '') {
-                return $result->result();
+                $message_rooms = $result->result();
+                return array_map([$this, 'formatMessageRooms'], $message_rooms);
             } else {
                 return $result->row();
             }

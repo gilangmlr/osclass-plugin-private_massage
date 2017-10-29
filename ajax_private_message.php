@@ -10,6 +10,16 @@
         echo json_encode(['unread' => $unread]);
         exit();
     }
+    if ($mode === 'getPMList') {
+        if (intval(Params::getParam('item_id'))) {
+            $message_rooms = PMModel::newInstance()->getUserMessageRoomsByItemId(intval(Params::getParam('item_id')));
+          } else {
+            $message_rooms = PMModel::newInstance()->getUserMessageRooms();
+        }
+
+        echo json_encode(['message_rooms' => $message_rooms]);
+        exit();
+    }
     if (trim(Params::getParam('content')) === "" && isset($_FILES["image"]) && $_FILES["image"]["error"] !== 0 && $mode !== "poll") {
         echo json_encode(["error" => "Content cannot be empty."]);
         if ($mode === "start") {

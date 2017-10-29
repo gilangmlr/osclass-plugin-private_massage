@@ -26,6 +26,10 @@ Plugin update URI: mailto:gilangmlr@gmail.com
     osc_delete_preference('upload_path', 'private_message');
   }
 
+  function pm_header() {
+    require_once(osc_plugins_path() . 'private_message/header.php');
+  }
+
   function hide_contact() {
     require_once(osc_plugins_path() . 'private_message/hide_contact.php');
   }
@@ -34,6 +38,7 @@ Plugin update URI: mailto:gilangmlr@gmail.com
   osc_add_route('private-message-start', 'private-message/start/([0-9]+)', 'private-message/start/{item_id}', osc_plugin_folder(__FILE__).'private_message_start.php');
   osc_add_route('private-message-list', 'private-message/list/([0-9]*)', 'private-message/list/{item_id}', osc_plugin_folder(__FILE__).'private_message_list.php');
 
+  osc_add_hook('header', 'pm_header');
   osc_add_hook('footer', 'hide_contact');
   osc_register_plugin(osc_plugin_path(__FILE__), 'custom_function_call_after_install') ;
   osc_add_hook(osc_plugin_path(__FILE__)."_uninstall", 'custom_function_call_after_uninstall');
