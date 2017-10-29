@@ -139,8 +139,8 @@
           $('#message-rooms').append($message_room);
         }
         window.setTimeout(function() {
-          // getPMList();
-        }, 10000);
+          getPMList();
+        }, 30000);
       }
     });
   }

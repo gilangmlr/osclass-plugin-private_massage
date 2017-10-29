@@ -99,7 +99,7 @@
           }
           window.setTimeout(function() {
             getUnread();
-          }, 5000);
+          }, 30000);
         }
       });
     }
